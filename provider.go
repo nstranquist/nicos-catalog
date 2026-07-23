@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // Provider is the host extension boundary. Providers discover authored facts;

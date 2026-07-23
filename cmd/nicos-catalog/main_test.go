@@ -9,10 +9,10 @@ import (
 
 func TestVersionExpectation(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	if code := run(context.Background(), []string{"--json", "version", "--expect", "v0.1.0"}, &stdout, &stderr); code != 0 {
+	if code := run(context.Background(), []string{"--json", "version", "--expect", "v0.1.1"}, &stdout, &stderr); code != 0 {
 		t.Fatalf("run returned %d: %s", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), `"version": "v0.1.0"`) {
+	if !strings.Contains(stdout.String(), `"version": "v0.1.1"`) {
 		t.Fatalf("unexpected output: %s", stdout.String())
 	}
 }

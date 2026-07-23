@@ -14,4 +14,4 @@ install:
 	go install ./cmd/nicos-catalog
 
 release-check: verify
-	go run ./cmd/nicos-catalog --json version --expect v0.1.0
+	go run ./cmd/nicos-catalog --json version --expect v0.1.1

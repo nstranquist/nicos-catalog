@@ -325,7 +325,7 @@ Commands:
   reconcile   report drift or rebuild with --apply
   project     emit the closed, privacy-safe public DTO
   demo        run an entirely synthetic end-to-end host
-  version     print build identity; supports --expect v0.1.0
+  version     print build identity; supports --expect v0.1.1
 
 Layout flags:
   --root PATH       host root (default .)

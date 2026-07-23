@@ -1,8 +1,12 @@
 schema_version: 1
 product_id: product.nicos-catalog
-visibility: internal
+visibility: public
 reviewed: true
 assets:
+    - path: portfolio/assets/catalog-engine.png
+      kind: screenshot
+      alt: Nicos Catalog running inside Catalog Gallery as an independent synthetic host
+      caption: The public engine proof exercises provider injection, deterministic BM25 search, typed graphs, drift checks, and the closed projection.
     - path: assets/brand/nicos-catalog.svg
       kind: logo
       alt: Nicos Catalog application icon

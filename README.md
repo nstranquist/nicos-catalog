@@ -15,8 +15,8 @@ Those stay in host adapters.
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.1.0
-nicos-catalog version --expect v0.1.0
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.1.1
+nicos-catalog version --expect v0.1.1
 ```
 
 For a source checkout:
@@ -71,9 +71,11 @@ type Provider interface {
 }
 ```
 
-`FilesystemProvider` handles YAML, JSON, and Markdown with YAML frontmatter. It
-skips generated/cache directories plus `_archive` by default; hosts can add
-directory names through `ExcludeDirs`.
+`FilesystemProvider` handles YAML, JSON, and Markdown with YAML frontmatter. Its
+`Strict` mode rejects unknown fields, malformed frontmatter, trailing
+documents, and records without IDs; the CLI enables strict mode. It skips
+generated/cache directories plus `_archive` by default; hosts can add directory
+names through `ExcludeDirs`.
 `StaticProvider` supports embedded fixtures and API-backed hosts. Provider output
 is normalized and sorted; duplicate IDs fail closed across provider boundaries.
 

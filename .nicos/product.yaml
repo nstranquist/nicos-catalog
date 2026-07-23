@@ -1,0 +1,30 @@
+schema_version: 1
+id: product.nicos-catalog
+name: Nicos Catalog
+surface: products
+kind: product
+status: experimental
+persona: Engineers and small platform teams operating a growing multi-repository software ecosystem.
+jtbd: Make software ownership, dependencies, evidence, and drift legible without adopting a heavyweight hosted service catalog.
+pricing: Free Apache-2.0 local engine and CLI.
+launch: built
+license: Apache-2.0
+tags:
+  - go
+  - cli
+  - developer-platform
+  - software-catalog
+  - local-first
+  - oss
+refs:
+  - kind: adopted_by
+    target: product.catalog-gallery
+checks:
+  - name: test
+    command: [go, test, ./...]
+  - name: vet
+    command: [go, vet, ./...]
+  - name: build
+    command: [go, build, -o, /dev/null, ./cmd/nicos-catalog]
+description: Typed, host-injected software-catalog engine and CLI with provider plugins, deterministic indexing, BM25 full-text search, relationship graphs, drift/reconcile gates, a synthetic demo, and a closed privacy-safe public projection.
+portfolio_manifest: portfolio/manifest.yaml

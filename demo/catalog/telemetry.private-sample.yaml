@@ -1,0 +1,9 @@
+id: telemetry.private-sample
+name: Private Sample
+kind: telemetry
+status: active
+description: Synthetic host-only data proving the public projection is closed.
+visibility: private
+tags: [demo]
+annotations:
+  query: never projected

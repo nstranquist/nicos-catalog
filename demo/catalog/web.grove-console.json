@@ -1,0 +1,11 @@
+{
+  "id": "web.grove-console",
+  "name": "Grove Console",
+  "kind": "web-app",
+  "surface": "frontend",
+  "status": "beta",
+  "description": "A synthetic operations console for graph and ownership exploration.",
+  "visibility": "public",
+  "public_url": "https://example.com/grove",
+  "tags": ["demo", "react"]
+}

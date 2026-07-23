@@ -1,0 +1,16 @@
+schema_version: 1
+product_id: product.nicos-catalog
+visibility: internal
+reviewed: true
+assets:
+    - path: assets/brand/nicos-catalog.svg
+      kind: logo
+      alt: Nicos Catalog application icon
+      provenance: authored-svg
+      copyright_owner: Nico Stranquist
+      generator: catalog-brand-svg/v2
+      concept: catalog-grid
+      score: 100
+case_study:
+    enabled: false
+    evidence: []

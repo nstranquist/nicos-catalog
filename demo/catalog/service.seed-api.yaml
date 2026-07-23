@@ -1,0 +1,12 @@
+id: service.seed-api
+name: Seed API
+kind: service
+surface: backend
+status: shipped
+description: A synthetic Go service exposing catalog-safe seed inventory.
+visibility: public
+public_url: https://example.com/seed-api
+tags: [demo, go]
+refs:
+  - kind: serves
+    target: web.grove-console

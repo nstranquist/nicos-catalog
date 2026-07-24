@@ -10,6 +10,11 @@ The public core deliberately excludes personal telemetry, business valuation,
 private query text, runtime credentials, and host-specific portfolio policy.
 Those stay in host adapters.
 
+**Live demo:** a signed-out host running this engine against a synthetic corpus
+is at [Catalog Gallery `/engine`](https://demo.invalid/engine)
+— it performs a real reindex, BM25 search, drift check, and public projection,
+and publishes a receipt of the run.
+
 ## Install
 
 Requires Go 1.24 or newer.

@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"fmt"
+	"context"
 	"math"
 	"regexp"
 	"sort"
@@ -10,30 +10,46 @@ import (
 
 var tokenPattern = regexp.MustCompile(`[a-z0-9][a-z0-9._+-]*`)
 
+// SearchOptions tunes a single query.
 type SearchOptions struct {
+	// Limit bounds the returned results. Zero selects the default of ten.
 	Limit int
+	// Kinds restricts results to these kinds, matched case-insensitively.
 	Kinds []string
+	_     struct{}
 }
 
+// SearchResult is one scored match.
 type SearchResult struct {
 	Entity       Entity   `json:"entity"`
 	Score        float64  `json:"score"`
 	MatchedTerms []string `json:"matched_terms"`
+	_            struct{}
 }
 
 // Search performs BM25 full-text retrieval over the deterministic local index.
-func (e *Engine) Search(query string, options SearchOptions) ([]SearchResult, error) {
-	index, err := e.LoadIndex()
+//
+// Scores are relative within one result set and are not comparable across
+// queries or across engines: a higher score is a better match here, which is
+// the opposite convention to some host rankers.
+func (e *Engine) Search(ctx context.Context, query string, options SearchOptions) ([]SearchResult, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	index, err := e.LoadIndex(ctx)
 	if err != nil {
 		return nil, err
 	}
 	terms := normalizeStrings(tokenize(query))
 	if len(terms) == 0 {
-		return nil, fmt.Errorf("search query must contain at least one term")
+		return nil, ErrEmptyQuery
 	}
 	limit := options.Limit
 	if limit <= 0 {
 		limit = 10
+	}
+	if max := e.limits.MaxSearchResults; max > 0 && limit > max {
+		limit = max
 	}
 	kinds := map[string]struct{}{}
 	for _, kind := range options.Kinds {

@@ -1,5 +1,10 @@
 # Nicos Catalog
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/nstranquist/nicos-catalog.svg)](https://pkg.go.dev/github.com/nstranquist/nicos-catalog)
+[![CI](https://github.com/nstranquist/nicos-catalog/actions/workflows/ci.yml/badge.svg)](https://github.com/nstranquist/nicos-catalog/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nstranquist/nicos-catalog)](https://goreportcard.com/report/github.com/nstranquist/nicos-catalog)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 Nicos Catalog is a typed, local-first software-catalog engine for repositories,
 services, products, documents, and the relationships between them. Hosts inject
 their own filesystem layout and providers; the engine supplies deterministic
@@ -10,18 +15,13 @@ The public core deliberately excludes personal telemetry, business valuation,
 private query text, runtime credentials, and host-specific portfolio policy.
 Those stay in host adapters.
 
-**Live demo:** a signed-out host running this engine against a synthetic corpus
-is at [Catalog Gallery `/engine`](https://demo.invalid/engine)
-— it performs a real reindex, BM25 search, drift check, and public projection,
-and publishes a receipt of the run.
-
 ## Install
 
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.1.1
-nicos-catalog version --expect v0.1.1
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.2.0
+nicos-catalog version --expect v0.2.0
 ```
 
 For a source checkout:
@@ -62,8 +62,8 @@ layout, _ := (catalog.Layout{
     SidecarDataDir: ".catalog/sidecars",
 }).Resolve(hostRoot)
 
-engine, _ := catalog.New(layout, myProvider)
-_, _ = engine.Reindex(context.Background())
+engine, _ := catalog.New(layout, catalog.WithProviders(myProvider))
+_, _ = engine.Reindex(ctx)
 results, _ := engine.Search("ownership graph", catalog.SearchOptions{Limit: 5})
 ```
 
@@ -106,3 +106,35 @@ See [docs/architecture.md](docs/architecture.md) for design boundaries and
 ## License
 
 Apache-2.0.
+
+## Migrating from v0.1.x
+
+| v0.1.x | v0.2.0 |
+| --- | --- |
+| `catalog.New(layout, p1, p2)` | `catalog.New(layout, catalog.WithProviders(p1, p2))` |
+| `engine.LoadIndex()` | `engine.LoadIndex(ctx)` |
+| `engine.Search(q, opts)` | `engine.Search(ctx, q, opts)` |
+| `catalog.ProjectPublic(index, policy)` | `catalog.ProjectPublic(ctx, index, policy)` |
+| `engine.Reconcile(ctx, true)` | `engine.Reconcile(ctx, catalog.ReconcileApply)` |
+| `catalog.Version` | `catalog.Version()` |
+| `Visibility: "public"` | `Visibility: catalog.VisibilityPublic` |
+| `report.Warnings []string` | `report.Warnings []catalog.ValidationIssue` |
+
+`Index.SchemaVersion` advanced to 2, so the first v0.2.0 run rebuilds any
+existing index. `Drift` reports `index_schema_mismatch` instead of failing, so
+this surfaces as a reindex prompt rather than an error. `Record.Digest` is now
+per-entity; the previous whole-payload value is `Record.SourceDigest`.
+
+Errors are now typed. Match sentinels with `errors.Is` and recover detail with
+`errors.As` rather than comparing message text:
+
+```go
+if errors.Is(err, catalog.ErrIndexMissing) { /* run reindex */ }
+
+var policy *catalog.PolicyError
+if errors.As(err, &policy) {
+    log.Printf("entity %s field %s violated %s", policy.EntityID, policy.Field, policy.Rule)
+}
+```
+
+See [`docs/api-stability.md`](docs/api-stability.md) for the versioning policy.

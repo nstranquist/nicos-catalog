@@ -1,0 +1,34 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    # errorlint catches the %s-instead-of-%w class directly. A formatted-but-
+    # unwrapped error is invisible in review and silently defeats errors.Is.
+    - errorlint
+    - bodyclose
+    - copyloopvar
+    - gocritic
+    - gosec
+    - misspell
+    - nilerr
+    - noctx
+    - revive
+    - thelper
+    - tparallel
+    - usestdlibvars
+    - wastedassign
+  settings:
+    revive:
+      rules:
+        - name: exported
+          arguments: ["disableStutteringCheck"]
+  exclusions:
+    rules:
+      # Test fixtures deliberately construct malformed and hostile input.
+      - path: _test\.go
+        linters: [gosec, noctx]
+
+formatters:
+  enable:
+    - gofmt

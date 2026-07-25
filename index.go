@@ -9,10 +9,12 @@ import (
 	"path/filepath"
 )
 
+// Document is the per-entity term-frequency record backing BM25 retrieval.
 type Document struct {
 	EntityID      string         `json:"entity_id"`
 	Length        int            `json:"length"`
 	TermFrequency map[string]int `json:"term_frequency"`
+	_             struct{}
 }
 
 // Index is the deterministic, portable catalog cache. It intentionally omits
@@ -23,16 +25,21 @@ type Index struct {
 	Entities              []Entity   `json:"entities"`
 	Documents             []Document `json:"documents"`
 	AverageDocumentLength float64    `json:"average_document_length"`
+	_                     struct{}
 }
 
+// ReindexReport summarizes a completed reindex.
 type ReindexReport struct {
 	OK            bool   `json:"ok"`
 	EntityCount   int    `json:"entity_count"`
 	DocumentCount int    `json:"document_count"`
 	SourceDigest  string `json:"source_digest"`
 	IndexPath     string `json:"index_path"`
+	_             struct{}
 }
 
+// Reindex discovers, indexes, and atomically installs the derived index.
+// Identical inputs produce byte-identical output.
 func (e *Engine) Reindex(ctx context.Context) (ReindexReport, error) {
 	records, err := e.Discover(ctx)
 	if err != nil {
@@ -72,23 +79,35 @@ func buildIndex(records []Record, digest string) Index {
 	return index
 }
 
-func (e *Engine) LoadIndex() (Index, error) {
-	payload, err := os.ReadFile(e.layout.indexPath())
+// LoadIndex reads the derived index written by Reindex.
+func (e *Engine) LoadIndex(ctx context.Context) (Index, error) {
+	if err := ctx.Err(); err != nil {
+		return Index{}, err
+	}
+	path := e.layout.indexPath()
+	payload, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return Index{}, fmt.Errorf("index missing at %s; run reindex", e.layout.indexPath())
+			// Both sentinels are preserved: callers testing for the domain
+			// condition (ErrIndexMissing) and callers testing for the I/O
+			// condition (os.ErrNotExist) must each match. An earlier version
+			// formatted this with %s, which silently broke every errors.Is
+			// check against it.
+			return Index{}, &IndexError{Path: path, Err: fmt.Errorf("%w: %w", ErrIndexMissing, err)}
 		}
-		return Index{}, err
+		return Index{}, &IndexError{Path: path, Err: err}
 	}
 	var index Index
 	if err := json.Unmarshal(payload, &index); err != nil {
-		return Index{}, fmt.Errorf("decode index: %w", err)
+		return Index{}, &IndexError{Path: path, Err: fmt.Errorf("%w: %w", ErrIndexCorrupt, err)}
 	}
 	if index.SchemaVersion != SchemaVersion {
-		return Index{}, fmt.Errorf("unsupported index schema %d; expected %d", index.SchemaVersion, SchemaVersion)
+		return Index{}, &IndexError{Path: path, Err: fmt.Errorf("%w: found %d, expected %d",
+			ErrIndexSchema, index.SchemaVersion, SchemaVersion)}
 	}
 	if len(index.Entities) != len(index.Documents) {
-		return Index{}, fmt.Errorf("invalid index: %d entities but %d documents", len(index.Entities), len(index.Documents))
+		return Index{}, &IndexError{Path: path, Err: fmt.Errorf("%w: %d entities but %d documents",
+			ErrIndexCorrupt, len(index.Entities), len(index.Documents))}
 	}
 	return index, nil
 }
@@ -125,6 +144,14 @@ func writeJSONAtomic(path string, value any) error {
 	}
 	if err := os.Rename(tempPath, path); err != nil {
 		return fmt.Errorf("install index: %w", err)
+	}
+	// Syncing the file alone does not durably record the rename; the directory
+	// entry itself must be flushed. Failures here are tolerated because some
+	// filesystems and platforms refuse directory sync, and the rename has
+	// already made the new content visible.
+	if dir, err := os.Open(filepath.Dir(path)); err == nil {
+		_ = dir.Sync()
+		_ = dir.Close()
 	}
 	return nil
 }

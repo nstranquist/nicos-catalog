@@ -1,3 +1,4 @@
 .nicos-catalog/
 bin/
 coverage.out
+cover-*.out

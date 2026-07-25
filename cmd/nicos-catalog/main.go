@@ -50,7 +50,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	engine, err := catalog.New(layout, catalog.FilesystemProvider{ProviderName: "host-filesystem", Strict: true})
+	engine, err := catalog.New(layout, catalog.WithProviders(catalog.FilesystemProvider{ProviderName: "host-filesystem", Strict: true}))
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -67,9 +67,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stdout, "indexed %d entities at %s\n", report.EntityCount, report.IndexPath)
 		})
 	case "search":
-		return runSearch(engine, commandArgs, *jsonOutput, stdout, stderr)
+		return runSearch(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "graph":
-		return runGraph(engine, commandArgs, *jsonOutput, stdout, stderr)
+		return runGraph(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "drift":
 		report, err := engine.Drift(ctx)
 		code := reportResult(stdout, stderr, *jsonOutput, report, err, func() {
@@ -86,7 +86,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	case "reconcile":
 		return runReconcile(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "project":
-		return runProject(engine, commandArgs, *jsonOutput, stdout, stderr)
+		return runProject(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "unknown command %q\n\n", command)
 		printUsage(stderr)
@@ -112,7 +112,7 @@ func runVersion(args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	return 0
 }
 
-func runSearch(engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
+func runSearch(ctx context.Context, engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("search", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	limit := flags.Int("limit", 10, "maximum number of results")
@@ -121,7 +121,7 @@ func runSearch(engine *catalog.Engine, args []string, jsonOutput bool, stdout, s
 		return 2
 	}
 	query := strings.Join(flags.Args(), " ")
-	results, err := engine.Search(query, catalog.SearchOptions{Limit: *limit, Kinds: splitCSV(*kinds)})
+	results, err := engine.Search(ctx, query, catalog.SearchOptions{Limit: *limit, Kinds: splitCSV(*kinds)})
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -134,14 +134,14 @@ func runSearch(engine *catalog.Engine, args []string, jsonOutput bool, stdout, s
 	return 0
 }
 
-func runGraph(engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
+func runGraph(ctx context.Context, engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("graph", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	format := flags.String("format", "mermaid", "output format: mermaid or json")
 	if err := flags.Parse(args); err != nil {
 		return 2
 	}
-	index, err := engine.LoadIndex()
+	index, err := engine.LoadIndex(ctx)
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -163,7 +163,11 @@ func runReconcile(ctx context.Context, engine *catalog.Engine, args []string, js
 	if err := flags.Parse(args); err != nil {
 		return 2
 	}
-	report, err := engine.Reconcile(ctx, *apply)
+	mode := catalog.ReconcileDryRun
+	if *apply {
+		mode = catalog.ReconcileApply
+	}
+	report, err := engine.Reconcile(ctx, mode)
 	return reportResult(stdout, stderr, jsonOutput, report, err, func() {
 		switch {
 		case report.Applied:
@@ -176,7 +180,7 @@ func runReconcile(ctx context.Context, engine *catalog.Engine, args []string, js
 	})
 }
 
-func runProject(engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
+func runProject(ctx context.Context, engine *catalog.Engine, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("project", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	visibility := flags.String("visibility", "public", "required entity visibility")
@@ -186,12 +190,12 @@ func runProject(engine *catalog.Engine, args []string, jsonOutput bool, stdout, 
 	if err := flags.Parse(args); err != nil {
 		return 2
 	}
-	index, err := engine.LoadIndex()
+	index, err := engine.LoadIndex(ctx)
 	if err != nil {
 		return fail(stderr, err)
 	}
-	projection, err := catalog.ProjectPublic(index, catalog.ProjectionPolicy{
-		RequireVisibility: *visibility, IncludeKinds: splitCSV(*kinds), IncludeTags: splitCSV(*tags), AllowHosts: splitCSV(*hosts),
+	projection, err := catalog.ProjectPublic(ctx, index, catalog.ProjectionPolicy{
+		RequireVisibility: catalog.Visibility(*visibility), IncludeKinds: splitCSV(*kinds), IncludeTags: splitCSV(*tags), AllowHosts: splitCSV(*hosts),
 	})
 	if err != nil {
 		return fail(stderr, err)
@@ -227,7 +231,7 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	if err != nil {
 		return fail(stderr, err)
 	}
-	engine, err := catalog.New(layout, catalog.StaticProvider{ProviderName: "synthetic-demo", Entities: syntheticEntities()})
+	engine, err := catalog.New(layout, catalog.WithProviders(catalog.StaticProvider{ProviderName: "synthetic-demo", Entities: syntheticEntities()}))
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -235,15 +239,15 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	if err != nil {
 		return fail(stderr, err)
 	}
-	results, err := engine.Search(*query, catalog.SearchOptions{Limit: 3})
+	results, err := engine.Search(ctx, *query, catalog.SearchOptions{Limit: 3})
 	if err != nil {
 		return fail(stderr, err)
 	}
-	index, err := engine.LoadIndex()
+	index, err := engine.LoadIndex(ctx)
 	if err != nil {
 		return fail(stderr, err)
 	}
-	projection, err := catalog.ProjectPublic(index, catalog.ProjectionPolicy{RequireVisibility: "public", AllowHosts: []string{"example.com"}})
+	projection, err := catalog.ProjectPublic(ctx, index, catalog.ProjectionPolicy{RequireVisibility: catalog.VisibilityPublic, AllowHosts: []string{"example.com"}})
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -325,7 +329,7 @@ Commands:
   reconcile   report drift or rebuild with --apply
   project     emit the closed, privacy-safe public DTO
   demo        run an entirely synthetic end-to-end host
-  version     print build identity; supports --expect v0.1.1
+  version     print build identity; supports --expect %s
 
 Layout flags:
   --root PATH       host root (default .)
@@ -334,5 +338,5 @@ Layout flags:
   --cache PATH      derived cache directory
   --sidecars PATH   host-owned sidecar directory
   --json            emit JSON
-`, name)
+`, name, catalog.Version())
 }

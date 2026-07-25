@@ -10,9 +10,18 @@ import (
 // Layout injects every host-owned filesystem boundary used by the engine.
 // The engine never assumes a repository name, home directory, or corpus shape.
 type Layout struct {
-	CorpusDir      string `json:"corpus_dir" yaml:"corpus_dir"`
-	ConfigDir      string `json:"config_dir" yaml:"config_dir"`
-	CacheDir       string `json:"cache_dir" yaml:"cache_dir"`
+	// CorpusDir holds authored entity files. It is the only directory the
+	// engine reads as input.
+	CorpusDir string `json:"corpus_dir" yaml:"corpus_dir"`
+	// ConfigDir holds host configuration. The engine does not read it; it is
+	// carried so a host has one place to describe all four boundaries.
+	ConfigDir string `json:"config_dir" yaml:"config_dir"`
+	// CacheDir holds derived state, including the index. It must not be nested
+	// beneath CorpusDir, or generated output would become authored input on the
+	// next run.
+	CacheDir string `json:"cache_dir" yaml:"cache_dir"`
+	// SidecarDataDir holds host-owned data adjacent to the catalog. The engine
+	// does not read or write it.
 	SidecarDataDir string `json:"sidecar_data_dir" yaml:"sidecar_data_dir"`
 }
 
@@ -31,7 +40,7 @@ func DefaultLayout(root string) Layout {
 func (l Layout) Resolve(root string) (Layout, error) {
 	root, err := filepath.Abs(filepath.Clean(root))
 	if err != nil {
-		return Layout{}, fmt.Errorf("resolve host root: %w", err)
+		return Layout{}, fmt.Errorf("%w: resolve host root: %w", ErrInvalidLayout, err)
 	}
 	resolve := func(raw string) string {
 		raw = strings.TrimSpace(raw)
@@ -62,22 +71,22 @@ func (l Layout) Validate() error {
 	}
 	for name, path := range paths {
 		if strings.TrimSpace(path) == "" {
-			return fmt.Errorf("layout %s is required", name)
+			return fmt.Errorf("%w: %s is required", ErrInvalidLayout, name)
 		}
 		if !filepath.IsAbs(path) {
-			return fmt.Errorf("layout %s must be absolute after resolution: %q", name, path)
+			return fmt.Errorf("%w: %s must be absolute after resolution: %q", ErrInvalidLayout, name, path)
 		}
 	}
 	corpus := filepath.Clean(l.CorpusDir)
 	cache := filepath.Clean(l.CacheDir)
 	if corpus == cache {
-		return fmt.Errorf("cache_dir must not equal corpus_dir")
+		return fmt.Errorf("%w: cache_dir must not equal corpus_dir", ErrInvalidLayout)
 	}
 	if within(cache, corpus) {
-		return fmt.Errorf("cache_dir %q must not contain corpus_dir %q", cache, corpus)
+		return fmt.Errorf("%w: cache_dir %q must not contain corpus_dir %q", ErrInvalidLayout, cache, corpus)
 	}
 	if within(corpus, cache) {
-		return fmt.Errorf("cache_dir %q must not be nested beneath corpus_dir %q", cache, corpus)
+		return fmt.Errorf("%w: cache_dir %q must not be nested beneath corpus_dir %q", ErrInvalidLayout, cache, corpus)
 	}
 	return nil
 }

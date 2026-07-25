@@ -3,10 +3,12 @@ package catalog
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func testLayout(t *testing.T) Layout {
@@ -21,9 +23,9 @@ func testLayout(t *testing.T) Layout {
 
 func testEntities() []Entity {
 	return []Entity{
-		{ID: "system.alpha", Name: "Alpha Platform", Kind: "system", Description: "Developer ownership graph and service catalog.", Tags: []string{"platform", "public"}, Visibility: "public", PublicURL: "https://example.com/alpha", Entrypoint: "/private/public-entity-path", Annotations: map[string]string{"query": "private public-entity query"}, Refs: []Ref{{Kind: "contains", Target: "service.beta"}}},
-		{ID: "service.beta", Name: "Beta API", Kind: "service", Description: "Go API for inventory and dependency search.", Tags: []string{"go", "public"}, Visibility: "public", PublicURL: "https://example.com/beta"},
-		{ID: "telemetry.secret", Name: "Host Telemetry", Kind: "telemetry", Description: "Host-only query sample.", Visibility: "private", Entrypoint: "/private/path", Annotations: map[string]string{"query": "private query"}},
+		{ID: "system.alpha", Name: "Alpha Platform", Kind: "system", Description: "Developer ownership graph and service catalog.", Tags: []string{"platform", "public"}, Visibility: VisibilityPublic, PublicURL: "https://example.com/alpha", Entrypoint: "/private/public-entity-path", Annotations: map[string]string{"query": "private public-entity query"}, Refs: []Ref{{Kind: "contains", Target: "service.beta"}}},
+		{ID: "service.beta", Name: "Beta API", Kind: "service", Description: "Go API for inventory and dependency search.", Tags: []string{"go", "public"}, Visibility: VisibilityPublic, PublicURL: "https://example.com/beta"},
+		{ID: "telemetry.secret", Name: "Host Telemetry", Kind: "telemetry", Description: "Host-only query sample.", Visibility: VisibilityPrivate, Entrypoint: "/private/path", Annotations: map[string]string{"query": "private query"}},
 	}
 }
 
@@ -31,7 +33,7 @@ func TestReindexSearchDriftAndDeterminism(t *testing.T) {
 	ctx := context.Background()
 	layout := testLayout(t)
 	provider := &StaticProvider{ProviderName: "fixture", Entities: testEntities()}
-	engine, err := New(layout, provider)
+	engine, err := New(layout, WithProviders(provider))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +55,7 @@ func TestReindexSearchDriftAndDeterminism(t *testing.T) {
 	if string(firstBytes) != string(secondBytes) {
 		t.Fatal("identical provider output produced different index bytes")
 	}
-	results, err := engine.Search("ownership graph", SearchOptions{Limit: 2})
+	results, err := engine.Search(context.Background(), "ownership graph", SearchOptions{Limit: 2})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,25 +71,25 @@ func TestReindexSearchDriftAndDeterminism(t *testing.T) {
 	if err != nil || !drift.Changed || drift.OK {
 		t.Fatalf("expected source drift, got %#v err=%v", drift, err)
 	}
-	reconciled, err := engine.Reconcile(ctx, true)
+	reconciled, err := engine.Reconcile(ctx, ReconcileApply)
 	if err != nil || !reconciled.Applied {
 		t.Fatalf("expected applied reconcile, got %#v err=%v", reconciled, err)
 	}
 }
 
 func TestPublicProjectionIsClosed(t *testing.T) {
-	engine, err := New(testLayout(t), StaticProvider{Entities: testEntities()})
+	engine, err := New(testLayout(t), WithProviders(StaticProvider{Entities: testEntities()}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := engine.Reindex(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	index, err := engine.LoadIndex()
+	index, err := engine.LoadIndex(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	projection, err := ProjectPublic(index, ProjectionPolicy{RequireVisibility: "public", AllowHosts: []string{"example.com"}})
+	projection, err := ProjectPublic(context.Background(), index, ProjectionPolicy{RequireVisibility: VisibilityPublic, AllowHosts: []string{"example.com"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,39 +109,48 @@ func TestPublicProjectionIsClosed(t *testing.T) {
 
 func TestPublicProjectionTruncatesOnUTF8Boundary(t *testing.T) {
 	entities := []Entity{{
-		ID: "service.unicode", Name: "Unicode", Kind: "service", Visibility: "public",
+		ID: "service.unicode", Name: "Unicode", Kind: "service", Visibility: VisibilityPublic,
 		Description: "ééé", PublicURL: "https://example.com/unicode",
 	}}
-	engine, err := New(testLayout(t), StaticProvider{Entities: entities})
+	engine, err := New(testLayout(t), WithProviders(StaticProvider{Entities: entities}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := engine.Reindex(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	index, err := engine.LoadIndex()
+	index, err := engine.LoadIndex(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	projection, err := ProjectPublic(index, ProjectionPolicy{RequireVisibility: "public", AllowHosts: []string{"EXAMPLE.COM"}, MaxSummaryBytes: 5})
+	projection, err := ProjectPublic(context.Background(), index, ProjectionPolicy{RequireVisibility: VisibilityPublic, AllowHosts: []string{"EXAMPLE.COM"}, MaxSummaryBytes: 5})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := projection.Items[0].Summary; got != "éé…" || !strings.Contains(got, "…") {
-		t.Fatalf("summary = %q, want valid rune-safe truncation", got)
+	// The ellipsis is charged against MaxSummaryBytes rather than appended
+	// after it, so the result never exceeds the caller's declared bound.
+	got := projection.Items[0].Summary
+	if len(got) > 5 {
+		t.Fatalf("summary = %q (%d bytes), want at most 5", got, len(got))
+	}
+	if !utf8.ValidString(got) {
+		t.Fatalf("summary = %q, want valid UTF-8 after truncation", got)
+	}
+	if !strings.HasSuffix(got, "…") {
+		t.Fatalf("summary = %q, want a truncation marker", got)
 	}
 }
 
 func TestPublicProjectionZeroPolicyIsFailClosed(t *testing.T) {
 	index := Index{Entities: testEntities()}
-	projection, err := ProjectPublic(index, ProjectionPolicy{})
-	if err == nil || !strings.Contains(err.Error(), "explicit hostname allowlist") {
+	projection, err := ProjectPublic(context.Background(), index, ProjectionPolicy{})
+	if !errors.Is(err, ErrHostAllowlistRequired) {
 		t.Fatalf("expected URL allowlist failure, got projection=%#v err=%v", projection, err)
 	}
 
 	index.Entities[0].PublicURL = ""
 	index.Entities[1].PublicURL = ""
-	projection, err = ProjectPublic(index, ProjectionPolicy{})
+	projection, err = ProjectPublic(context.Background(), index, ProjectionPolicy{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,39 +166,91 @@ func TestPublicProjectionZeroPolicyIsFailClosed(t *testing.T) {
 
 func TestPublicProjectionRejectsUnsafeURLsAndContent(t *testing.T) {
 	tests := []struct {
-		name string
-		edit func(*Entity)
-		want string
+		name  string
+		edit  func(*Entity)
+		want  PolicyRule
+		field string
 	}{
-		{"credentials", func(e *Entity) { e.PublicURL = "https://user:pass@example.com/item" }, "credentials"},
-		{"query", func(e *Entity) { e.PublicURL = "https://example.com/item?token=secret" }, "query or fragment"},
-		{"fragment", func(e *Entity) { e.PublicURL = "https://example.com/item#private" }, "query or fragment"},
-		{"port", func(e *Entity) { e.PublicURL = "https://example.com:8443/item" }, "non-HTTPS port"},
-		{"path", func(e *Entity) { e.Description = "Built from /Users/private/catalog.yaml" }, "prohibited content"},
-		{"secret", func(e *Entity) { e.Tags = []string{"api_key=abcdefghijklmnop"} }, "prohibited content"},
+		{"credentials", func(e *Entity) { e.PublicURL = "https://user:pass@example.com/item" }, RuleURLCredentials, "public_url"},
+		{"query", func(e *Entity) { e.PublicURL = "https://example.com/item?token=secret" }, RuleURLQuery, "public_url"},
+		{"fragment", func(e *Entity) { e.PublicURL = "https://example.com/item#private" }, RuleURLQuery, "public_url"},
+		{"port", func(e *Entity) { e.PublicURL = "https://example.com:8443/item" }, RuleURLPort, "public_url"},
+		{"host", func(e *Entity) { e.PublicURL = "https://elsewhere.test/item" }, RuleURLHost, "public_url"},
+		{"url_path", func(e *Entity) { e.PublicURL = "https://example.com/Users/someone/secret" }, RulePathDisclosure, "public_url"},
+		{"path", func(e *Entity) { e.Description = "Built from /Users/private/catalog.yaml" }, RulePathDisclosure, "summary"},
+		{"path_mid_token", func(e *Entity) { e.Description = "see cache/Users/private/x" }, RulePathDisclosure, "summary"},
+		{"secret", func(e *Entity) { e.Tags = []string{"api_key=abcdefghijklmnop"} }, RuleCredentialPair, "tags[0]"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			entity := Entity{ID: "system.public", Name: "Public", Kind: "system", Visibility: "public", PublicURL: "https://example.com/item"}
+			entity := Entity{ID: "system.public", Name: "Public", Kind: "system", Visibility: VisibilityPublic, PublicURL: "https://example.com/item"}
 			tt.edit(&entity)
-			_, err := ProjectPublic(Index{Entities: []Entity{entity}}, ProjectionPolicy{AllowHosts: []string{"example.com"}})
-			if err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Fatalf("expected %q error, got %v", tt.want, err)
+			_, err := ProjectPublic(context.Background(), Index{Entities: []Entity{entity}}, ProjectionPolicy{AllowHosts: []string{"example.com"}})
+			var policy *PolicyError
+			if !errors.As(err, &policy) {
+				t.Fatalf("expected *PolicyError, got %v", err)
+			}
+			if policy.Rule != tt.want {
+				t.Fatalf("rule = %q, want %q", policy.Rule, tt.want)
+			}
+			if policy.Field != tt.field {
+				t.Fatalf("field = %q, want %q", policy.Field, tt.field)
+			}
+			if policy.EntityID != "system.public" {
+				t.Fatalf("entity id = %q, want system.public", policy.EntityID)
+			}
+		})
+	}
+}
+
+// TestProhibitedContentErrorNeverEchoesSecret locks the rule that a rejection
+// must not reproduce the value it rejected. This error reaches stderr and CI
+// logs; echoing the match would defeat the boundary the projection enforces.
+func TestProhibitedContentErrorNeverEchoesSecret(t *testing.T) {
+	secrets := []struct {
+		name  string
+		value string
+	}{
+		{"openai", "sk-" + strings.Repeat("a", 40)},
+		{"github", "ghp_" + strings.Repeat("b", 36)},
+		{"assignment", "api_key=swordfish-hunter2-value"},
+		{"home_path", "/Users/someone/private/notes.md"},
+	}
+	for _, secret := range secrets {
+		t.Run(secret.name, func(t *testing.T) {
+			entity := Entity{
+				ID: "system.public", Name: "Public", Kind: "system",
+				Visibility: VisibilityPublic, Description: "leak " + secret.value,
+			}
+			_, err := ProjectPublic(context.Background(), Index{Entities: []Entity{entity}}, ProjectionPolicy{})
+			if err == nil {
+				t.Fatal("expected the value to be rejected")
+			}
+			if strings.Contains(err.Error(), secret.value) {
+				t.Fatalf("error echoed the rejected value: %v", err)
+			}
+			// A substantial fragment must not survive either.
+			if fragment := secret.value[:12]; strings.Contains(err.Error(), fragment) {
+				t.Fatalf("error echoed a fragment %q of the rejected value: %v", fragment, err)
 			}
 		})
 	}
 }
 
 func TestPublicProjectionRejectsNonPublicVisibilityPolicy(t *testing.T) {
-	_, err := ProjectPublic(Index{}, ProjectionPolicy{RequireVisibility: "private"})
-	if err == nil || !strings.Contains(err.Error(), "requires visibility") {
+	_, err := ProjectPublic(context.Background(), Index{}, ProjectionPolicy{RequireVisibility: VisibilityPrivate})
+	var policy *PolicyError
+	if !errors.As(err, &policy) || policy.Rule != RuleVisibility {
 		t.Fatalf("expected non-public policy rejection, got %v", err)
+	}
+	if !errors.Is(err, ErrPolicyViolation) {
+		t.Fatalf("expected ErrPolicyViolation, got %v", err)
 	}
 }
 
 func TestDuplicateIDFailsAcrossProviders(t *testing.T) {
 	entity := Entity{ID: "service.duplicate", Name: "Duplicate", Kind: "service"}
-	engine, err := New(testLayout(t), StaticProvider{ProviderName: "a", Entities: []Entity{entity}}, StaticProvider{ProviderName: "b", Entities: []Entity{entity}})
+	engine, err := New(testLayout(t), WithProviders(StaticProvider{ProviderName: "a", Entities: []Entity{entity}}, StaticProvider{ProviderName: "b", Entities: []Entity{entity}}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +273,7 @@ func TestFilesystemProviderReadsSupportedFormats(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	engine, err := New(layout, FilesystemProvider{})
+	engine, err := New(layout, WithProviders(FilesystemProvider{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +305,7 @@ func TestFilesystemProviderStrictRejectsUnknownFieldsAndMalformedFrontmatter(t *
 			if err != nil {
 				t.Fatal(err)
 			}
-			engine, err := New(layout, FilesystemProvider{Strict: true})
+			engine, err := New(layout, WithProviders(FilesystemProvider{Strict: true}))
 			if err != nil {
 				t.Fatal(err)
 			}

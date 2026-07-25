@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -9,15 +10,29 @@ import (
 	"unicode/utf8"
 )
 
-var prohibitedPublicContent = []*regexp.Regexp{
-	regexp.MustCompile(`(?i)(?:^|[\s"'(])(?:/users/|/home/|file://|~/|[a-z]:\\)`),
-	regexp.MustCompile(`(?i)\b(?:` + "private-admin-" + `evidence|sources/(?:originals|extracted-text)|\.jobkit|\.ssh)\b`),
-	regexp.MustCompile(`(?i)\b(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*\S+`),
-	regexp.MustCompile(`\b(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,})\b`),
+// prohibitedRule pairs a detection pattern with the closed rule it reports.
+type prohibitedRule struct {
+	pattern *regexp.Regexp
+	rule    PolicyRule
+}
+
+// prohibitedPublicContent detects values that must never reach a public
+// projection. The home-directory patterns require a following path segment
+// (/users/<name>/ rather than bare /users/) so that an ordinary site route is
+// not mistaken for a leaked local path, and they are deliberately not anchored
+// to a word boundary: a leaked path embedded mid-token is still a leaked path.
+var prohibitedPublicContent = []prohibitedRule{
+	{regexp.MustCompile(`(?i)(?:/users/[^/\s]+/|/home/[^/\s]+/|file://|~/|(?:^|[\s"'(])[a-z]:\\)`), RulePathDisclosure},
+	{regexp.MustCompile(`(?i)\b(?:` + "private-admin-" + `evidence|sources/(?:originals|extracted-text)|\.jobkit|\.ssh)\b`), RuleInternalPath},
+	{regexp.MustCompile(`(?i)\b(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*\S+`), RuleCredentialPair},
+	{regexp.MustCompile(`\b(?:gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,})\b`), RuleTokenShape},
 }
 
 // PublicEntity is a closed publication DTO. It cannot represent source paths,
 // host annotations, owner telemetry, sidecars, valuation, or query text.
+//
+// The field set is frozen by TestPublicEntityShapeIsFrozen. Adding a field is a
+// deliberate privacy decision, not a routine change.
 type PublicEntity struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
@@ -27,41 +42,150 @@ type PublicEntity struct {
 	Tags        []string           `json:"tags,omitempty"`
 	URL         string             `json:"url,omitempty"`
 	Connections []PublicConnection `json:"connections,omitempty"`
+	_           struct{}
 }
 
+// PublicConnection is a reference between two entities that both survived the
+// projection filter. References to excluded entities are dropped entirely.
 type PublicConnection struct {
 	Kind   string `json:"kind"`
 	Target string `json:"target"`
+	_      struct{}
 }
 
+// PublicProjection is the closed publication artifact. Publication should
+// consume this DTO rather than filtering a private index after serialization.
 type PublicProjection struct {
 	SchemaVersion int            `json:"schema_version"`
 	Items         []PublicEntity `json:"items"`
+	_             struct{}
 }
 
+// URLMode selects what happens to an entity URL that fails the allowlist. The
+// zero value rejects, so a caller that forgets to choose cannot publish one.
+type URLMode int
+
+// URL handling modes.
+const (
+	// URLModeAllowlist fails the projection when a URL is not allowlisted.
+	URLModeAllowlist URLMode = iota
+	// URLModeDrop omits the URL and keeps the entity.
+	URLModeDrop
+)
+
+// ProjectionPolicy constrains what ProjectPublic will emit.
 type ProjectionPolicy struct {
-	RequireVisibility string
-	IncludeKinds      []string
-	IncludeTags       []string
-	AllowHosts        []string
-	MaxSummaryBytes   int
+	// RequireVisibility is the visibility an entity must declare to be
+	// projected. The empty value means VisibilityPublic; no other value is
+	// accepted, because only public entities are publishable.
+	RequireVisibility Visibility
+	// IncludeKinds limits the projection to these kinds. Matching is
+	// case-insensitive, consistent with Search. Empty means every kind.
+	IncludeKinds []string
+	// IncludeTags limits the projection to entities carrying at least one of
+	// these tags. Empty means no tag filtering.
+	IncludeTags []string
+	// ExcludeTags removes entities carrying any of these tags. A denylist match
+	// beats an IncludeTags match, so a tag can be used to withhold an entity
+	// that would otherwise qualify.
+	ExcludeTags []string
+	// AllowHosts is the exact-match hostname allowlist for PublicURL. It must
+	// be non-empty whenever any projected entity declares a PublicURL;
+	// otherwise projection fails closed. Subdomains are not implied.
+	AllowHosts []string
+	// URLMode selects allowlist enforcement. The zero value rejects.
+	URLMode URLMode
+	// MaxSummaryBytes bounds the emitted summary, including the truncation
+	// marker. Zero or negative selects the 320-byte default.
+	MaxSummaryBytes int
+	// TruncationSuffix marks a shortened summary. Empty selects "…". Its bytes
+	// are charged against MaxSummaryBytes rather than added after it.
+	TruncationSuffix string
+	_                struct{}
 }
 
-func ProjectPublic(index Index, policy ProjectionPolicy) (PublicProjection, error) {
-	kinds := stringSet(policy.IncludeKinds)
+// Validate rejects policies that cannot be satisfied, so a host can fail at
+// config load rather than at publication time.
+func (p ProjectionPolicy) Validate() error {
+	if visibility := p.RequireVisibility; visibility != "" && visibility != VisibilityPublic {
+		return &PolicyError{Field: "require_visibility", Rule: RuleVisibility, Err: ErrPolicyViolation}
+	}
+	if p.MaxSummaryBytes < 0 {
+		return fmt.Errorf("%w: max_summary_bytes must not be negative", ErrPolicyViolation)
+	}
+	if p.URLMode != URLModeAllowlist && p.URLMode != URLModeDrop {
+		return fmt.Errorf("%w: unknown url mode %d", ErrPolicyViolation, int(p.URLMode))
+	}
+	overlap := stringSet(p.IncludeTags)
+	for _, tag := range p.ExcludeTags {
+		if _, ok := overlap[strings.TrimSpace(tag)]; ok {
+			return fmt.Errorf("%w: tag %q is both included and excluded", ErrPolicyViolation, tag)
+		}
+	}
+	return nil
+}
+
+const defaultTruncationSuffix = "…"
+
+// defaultMaxSummaryBytes bounds a projected summary when the policy does not.
+const defaultMaxSummaryBytes = 320
+
+// ScanPublicText reports whether value is safe to publish for the named field.
+// It returns a *PolicyError naming the violated rule, and never reproduces the
+// offending text. Hosts building their own publication gates should call this
+// rather than reimplementing the patterns, so library and host cannot drift.
+func ScanPublicText(field, value string) error {
+	if !utf8.ValidString(value) {
+		return &PolicyError{Field: field, Rule: RuleInvalidUTF8, Err: ErrProhibitedContent}
+	}
+	for _, candidate := range prohibitedPublicContent {
+		if candidate.pattern.MatchString(value) {
+			return &PolicyError{Field: field, Rule: candidate.rule, Err: ErrProhibitedContent}
+		}
+	}
+	return nil
+}
+
+// withEntity attaches an entity id to a policy error raised by a field-scoped
+// check, so the caller reports one fully-identified error.
+func withEntity(id string, err error) error {
+	if err == nil {
+		return nil
+	}
+	if policy, ok := err.(*PolicyError); ok {
+		policy.EntityID = id
+		return policy
+	}
+	return err
+}
+
+// ProjectPublic compiles the closed public projection for index under policy.
+// It fails closed: any entity that violates the policy aborts the projection
+// rather than being silently dropped.
+func ProjectPublic(ctx context.Context, index Index, policy ProjectionPolicy) (PublicProjection, error) {
+	if err := ctx.Err(); err != nil {
+		return PublicProjection{}, err
+	}
+	if err := policy.Validate(); err != nil {
+		return PublicProjection{}, err
+	}
+	kinds := foldedSet(policy.IncludeKinds)
 	tags := stringSet(policy.IncludeTags)
+	excluded := stringSet(policy.ExcludeTags)
 	hosts := hostSet(policy.AllowHosts)
 	maxSummary := policy.MaxSummaryBytes
 	if maxSummary <= 0 {
-		maxSummary = 320
+		maxSummary = defaultMaxSummaryBytes
 	}
-	requireVisibility := strings.TrimSpace(policy.RequireVisibility)
+	suffix := policy.TruncationSuffix
+	if suffix == "" {
+		suffix = defaultTruncationSuffix
+	}
+	requireVisibility := Visibility(strings.TrimSpace(string(policy.RequireVisibility)))
 	if requireVisibility == "" {
-		requireVisibility = "public"
+		requireVisibility = VisibilityPublic
 	}
-	if requireVisibility != "public" {
-		return PublicProjection{}, fmt.Errorf("public projection requires visibility %q, got %q", "public", requireVisibility)
-	}
+
 	projection := PublicProjection{SchemaVersion: SchemaVersion}
 	included := map[string]struct{}{}
 	for _, entity := range index.Entities {
@@ -69,39 +193,75 @@ func ProjectPublic(index Index, policy ProjectionPolicy) (PublicProjection, erro
 			continue
 		}
 		if len(kinds) > 0 {
-			if _, ok := kinds[entity.Kind]; !ok {
+			if _, ok := kinds[strings.ToLower(strings.TrimSpace(entity.Kind))]; !ok {
 				continue
 			}
+		}
+		if len(excluded) > 0 && hasAny(entity.Tags, excluded) {
+			continue
 		}
 		if len(tags) > 0 && !hasAny(entity.Tags, tags) {
 			continue
 		}
-		if err := validatePublicURL(entity.PublicURL, hosts); err != nil {
-			return PublicProjection{}, fmt.Errorf("entity %s: %w", entity.ID, err)
+		publicURL := entity.PublicURL
+		if err := validatePublicURL(publicURL, hosts); err != nil {
+			if policy.URLMode != URLModeDrop {
+				return PublicProjection{}, withEntity(entity.ID, err)
+			}
+			publicURL = ""
 		}
 		if err := validatePublicEntityContent(entity); err != nil {
-			return PublicProjection{}, fmt.Errorf("entity %s: %w", entity.ID, err)
-		}
-		summary := strings.TrimSpace(entity.Description)
-		if len(summary) > maxSummary {
-			summary = truncateUTF8(summary, maxSummary) + "…"
+			return PublicProjection{}, withEntity(entity.ID, err)
 		}
 		projection.Items = append(projection.Items, PublicEntity{
 			ID: entity.ID, Name: entity.Name, Kind: entity.Kind, Status: entity.Status,
-			Summary: summary, Tags: append([]string(nil), entity.Tags...), URL: entity.PublicURL,
+			Summary: boundedSummary(entity.Description, maxSummary, suffix),
+			Tags:    append([]string(nil), entity.Tags...), URL: publicURL,
 		})
 		included[entity.ID] = struct{}{}
 	}
+
+	// Index entities by id once. Resolving each item's refs by scanning the
+	// entity slice made this loop quadratic in corpus size.
+	byID := make(map[string]int, len(index.Entities))
+	for i := range index.Entities {
+		if _, seen := byID[index.Entities[i].ID]; !seen {
+			byID[index.Entities[i].ID] = i
+		}
+	}
 	for i := range projection.Items {
-		entity := findEntity(index.Entities, projection.Items[i].ID)
-		for _, ref := range entity.Refs {
+		position, ok := byID[projection.Items[i].ID]
+		if !ok {
+			continue
+		}
+		for _, ref := range index.Entities[position].Refs {
 			if _, ok := included[ref.Target]; ok {
-				projection.Items[i].Connections = append(projection.Items[i].Connections, PublicConnection{Kind: ref.Kind, Target: ref.Target})
+				projection.Items[i].Connections = append(projection.Items[i].Connections,
+					PublicConnection{Kind: ref.Kind, Target: ref.Target})
 			}
 		}
 	}
 	sort.Slice(projection.Items, func(i, j int) bool { return projection.Items[i].ID < projection.Items[j].ID })
 	return projection, nil
+}
+
+// boundedSummary trims value to at most maxBytes total. The ellipsis is charged
+// against the budget rather than appended after it, so the returned string
+// never exceeds the caller's declared bound.
+func boundedSummary(value string, maxBytes int, suffix string) string {
+	// Sanitize before measuring. ProjectPublic rejects invalid UTF-8 upstream,
+	// but this helper must hold its own invariant: a caller that reorders the
+	// checks must not be able to publish malformed bytes. truncateUTF8 only
+	// avoids splitting a rune; it cannot repair input that was already invalid.
+	summary := strings.TrimSpace(strings.ToValidUTF8(value, ""))
+	if len(summary) <= maxBytes {
+		return summary
+	}
+	budget := maxBytes - len(suffix)
+	if budget <= 0 {
+		return truncateUTF8(summary, maxBytes)
+	}
+	return truncateUTF8(summary, budget) + suffix
 }
 
 func truncateUTF8(value string, maxBytes int) string {
@@ -115,75 +275,95 @@ func truncateUTF8(value string, maxBytes int) string {
 	return strings.TrimSpace(value[:end])
 }
 
+// validatePublicURL enforces the URL shape and hostname allowlist, and scans
+// the URL's own text. The path segment is attacker- and author-controlled
+// content that is published verbatim, so it is scanned like any other field.
 func validatePublicURL(raw string, allowed map[string]struct{}) error {
 	if raw == "" {
 		return nil
 	}
 	parsed, err := url.Parse(raw)
 	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.Opaque != "" {
-		return fmt.Errorf("public_url must be an absolute https URL")
+		return &PolicyError{Field: "public_url", Rule: RuleURLScheme, Err: ErrPublicURLRejected}
 	}
 	if parsed.User != nil {
-		return fmt.Errorf("public_url must not contain credentials")
+		return &PolicyError{Field: "public_url", Rule: RuleURLCredentials, Err: ErrPublicURLRejected}
 	}
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
-		return fmt.Errorf("public_url must not contain a query or fragment")
+		return &PolicyError{Field: "public_url", Rule: RuleURLQuery, Err: ErrPublicURLRejected}
 	}
 	if port := parsed.Port(); port != "" && port != "443" {
-		return fmt.Errorf("public_url must not use non-HTTPS port %q", port)
+		return &PolicyError{Field: "public_url", Rule: RuleURLPort, Err: ErrPublicURLRejected}
 	}
 	if len(allowed) == 0 {
-		return fmt.Errorf("public_url requires an explicit hostname allowlist")
+		return &PolicyError{Field: "public_url", Rule: RuleURLHost, Err: ErrHostAllowlistRequired}
 	}
 	if _, ok := allowed[strings.ToLower(parsed.Hostname())]; !ok {
-		return fmt.Errorf("public_url host %q is not allowed", parsed.Hostname())
+		return &PolicyError{Field: "public_url", Rule: RuleURLHost, Err: ErrPublicURLRejected}
 	}
-	return nil
+	if err := ScanPublicText("public_url", parsed.Path); err != nil {
+		return err
+	}
+	return ScanPublicText("public_url", raw)
 }
 
 func validatePublicEntityContent(entity Entity) error {
-	values := []struct {
+	type fieldValue struct {
 		field string
 		value string
-	}{
+	}
+	values := []fieldValue{
 		{"id", entity.ID}, {"name", entity.Name}, {"kind", entity.Kind},
 		{"status", entity.Status}, {"summary", entity.Description},
 	}
 	for i, tag := range entity.Tags {
-		values = append(values, struct {
-			field string
-			value string
-		}{fmt.Sprintf("tags[%d]", i), tag})
+		values = append(values, fieldValue{"tags[" + itoa(i) + "]", tag})
 	}
 	for i, ref := range entity.Refs {
 		values = append(values,
-			struct {
-				field string
-				value string
-			}{fmt.Sprintf("refs[%d].kind", i), ref.Kind},
-			struct {
-				field string
-				value string
-			}{fmt.Sprintf("refs[%d].target", i), ref.Target},
+			fieldValue{"refs[" + itoa(i) + "].kind", ref.Kind},
+			fieldValue{"refs[" + itoa(i) + "].target", ref.Target},
 		)
 	}
 	for _, item := range values {
-		if !utf8.ValidString(item.value) {
-			return fmt.Errorf("public field %s is not valid UTF-8", item.field)
-		}
-		for _, pattern := range prohibitedPublicContent {
-			if match := pattern.FindString(item.value); match != "" {
-				return fmt.Errorf("public field %s contains prohibited content %q", item.field, match)
-			}
+		if err := ScanPublicText(item.field, item.value); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// itoa avoids pulling fmt into the projection hot path for index formatting.
+func itoa(value int) string {
+	if value == 0 {
+		return "0"
+	}
+	digits := [20]byte{}
+	position := len(digits)
+	for value > 0 {
+		position--
+		digits[position] = byte('0' + value%10)
+		value /= 10
+	}
+	return string(digits[position:])
 }
 
 func stringSet(values []string) map[string]struct{} {
 	out := map[string]struct{}{}
 	for _, value := range values {
 		value = strings.TrimSpace(value)
+		if value != "" {
+			out[value] = struct{}{}
+		}
+	}
+	return out
+}
+
+// foldedSet lowercases as well as trims, so kind filtering matches Search.
+func foldedSet(values []string) map[string]struct{} {
+	out := map[string]struct{}{}
+	for _, value := range values {
+		value = strings.ToLower(strings.TrimSpace(value))
 		if value != "" {
 			out[value] = struct{}{}
 		}
@@ -209,13 +389,4 @@ func hasAny(values []string, expected map[string]struct{}) bool {
 		}
 	}
 	return false
-}
-
-func findEntity(entities []Entity, id string) Entity {
-	for _, entity := range entities {
-		if entity.ID == id {
-			return entity
-		}
-	}
-	return Entity{}
 }

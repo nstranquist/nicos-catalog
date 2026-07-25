@@ -26,10 +26,14 @@ type Provider interface {
 
 // StaticProvider is useful for tests, embedded demos, and API-backed hosts.
 type StaticProvider struct {
+	// ProviderName identifies the provider. Empty selects "static".
 	ProviderName string
-	Entities     []Entity
+	// Entities are served as-is. The engine copies before normalizing, so this
+	// slice is never rewritten.
+	Entities []Entity
 }
 
+// Name reports the provider's identity.
 func (p StaticProvider) Name() string {
 	if strings.TrimSpace(p.ProviderName) == "" {
 		return "static"
@@ -37,6 +41,7 @@ func (p StaticProvider) Name() string {
 	return strings.TrimSpace(p.ProviderName)
 }
 
+// Provide returns one record per configured entity.
 func (p StaticProvider) Provide(_ context.Context, _ Layout) ([]Record, error) {
 	records := make([]Record, 0, len(p.Entities))
 	for i, entity := range p.Entities {
@@ -44,8 +49,11 @@ func (p StaticProvider) Provide(_ context.Context, _ Layout) ([]Record, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Digest is left to the engine, which computes it from the normalized
+		// entity during Discover. Providers report only the payload they read.
 		records = append(records, Record{
-			Entity: entity, Provider: p.Name(), Source: fmt.Sprintf("static:%04d", i), Digest: digestBytes(payload),
+			Entity: entity, Provider: p.Name(), Source: fmt.Sprintf("static:%04d", i),
+			SourceDigest: digestBytes(payload),
 		})
 	}
 	return records, nil
@@ -54,13 +62,20 @@ func (p StaticProvider) Provide(_ context.Context, _ Layout) ([]Record, error) {
 // FilesystemProvider reads .md YAML frontmatter, .yaml/.yml, and .json entity
 // records recursively from Layout.CorpusDir.
 type FilesystemProvider struct {
+	// ProviderName identifies the provider. Empty selects "filesystem".
 	ProviderName string
-	ExcludeDirs  []string
+	// ExcludeDirs names additional directories to skip, on top of the policy's
+	// own rules. It is folded into Policy.SkipDirNames during normalization.
+	ExcludeDirs []string
+	// Policy decides corpus membership. The zero value selects
+	// DefaultCorpusPolicy.
+	Policy CorpusPolicy
 	// Strict rejects unknown fields, malformed frontmatter, trailing documents,
 	// and entity files without IDs. Public and release paths should enable it.
 	Strict bool
 }
 
+// Name reports the provider's identity.
 func (p FilesystemProvider) Name() string {
 	if strings.TrimSpace(p.ProviderName) == "" {
 		return "filesystem"
@@ -68,7 +83,10 @@ func (p FilesystemProvider) Name() string {
 	return strings.TrimSpace(p.ProviderName)
 }
 
+// Provide walks Layout.CorpusDir and decodes every entity file it accepts.
+// Symlinked files are refused rather than followed.
 func (p FilesystemProvider) Provide(ctx context.Context, layout Layout) ([]Record, error) {
+	policy := p.resolvedPolicy()
 	var paths []string
 	err := filepath.WalkDir(layout.CorpusDir, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -78,14 +96,28 @@ func (p FilesystemProvider) Provide(ctx context.Context, layout Layout) ([]Recor
 			return err
 		}
 		if entry.IsDir() {
-			name := entry.Name()
-			if path != layout.CorpusDir && p.excludeDir(name) {
+			// The corpus root itself is never tested: a host whose corpus lives
+			// at .catalog would otherwise discover nothing.
+			if path != layout.CorpusDir && policy.DecideDir(entry.Name()).Skip {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-		switch strings.ToLower(filepath.Ext(path)) {
-		case ".md", ".yaml", ".yml", ".json":
+		// A symlink is reported as a non-directory entry, and reading it would
+		// follow the link out of the corpus. A corpus file that points at
+		// /etc/secrets.yaml decodes into perfectly valid entities, so the link
+		// is refused rather than resolved.
+		if entry.Type()&fs.ModeSymlink != 0 {
+			if p.Strict {
+				return &ProviderError{
+					Provider: p.Name(),
+					Source:   filepath.ToSlash(relativeTo(layout.CorpusDir, path)),
+					Err:      ErrCorpusEscape,
+				}
+			}
+			return nil
+		}
+		if !policy.DecideFile(entry.Name()).Skip {
 			paths = append(paths, path)
 		}
 		return nil
@@ -113,26 +145,27 @@ func (p FilesystemProvider) Provide(ctx context.Context, layout Layout) ([]Recor
 			if len(entities) > 1 {
 				source = fmt.Sprintf("%s#%d", source, i)
 			}
-			records = append(records, Record{Entity: entity, Provider: p.Name(), Source: source, Digest: digestBytes(payload)})
+			records = append(records, Record{
+				Entity: entity, Provider: p.Name(), Source: source,
+				SourceDigest: digestBytes(payload),
+			})
 		}
 	}
 	return records, nil
 }
 
-func (p FilesystemProvider) excludeDir(name string) bool {
-	if strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor" || name == "_archive" {
-		return true
+// resolvedPolicy folds ExcludeDirs into the effective corpus policy. A zero
+// Policy selects the default, so an existing caller that only set ExcludeDirs
+// keeps its behavior.
+func (p FilesystemProvider) resolvedPolicy() CorpusPolicy {
+	policy := p.Policy
+	if policy.Extensions == nil && policy.SkipDirNames == nil &&
+		!policy.SkipDotPrefixedDirs && !policy.SkipUnderscorePrefixedDirs &&
+		!policy.SkipUnderscorePrefixedFiles {
+		policy = DefaultCorpusPolicy()
 	}
-	for _, excluded := range p.ExcludeDirs {
-		if name == strings.TrimSpace(excluded) {
-			return true
-		}
-	}
-	return false
-}
-
-func decodeEntities(path string, payload []byte) ([]Entity, error) {
-	return decodeEntitiesWithPolicy(path, payload, false)
+	policy.SkipDirNames = append(append([]string(nil), policy.SkipDirNames...), p.ExcludeDirs...)
+	return policy.Normalize()
 }
 
 func decodeEntitiesWithPolicy(path string, payload []byte, strict bool) ([]Entity, error) {
@@ -274,6 +307,16 @@ func firstParagraph(body string) string {
 		return strings.Join(strings.Fields(block), " ")
 	}
 	return ""
+}
+
+// relativeTo renders path relative to base, falling back to the absolute path
+// when the two share no common root.
+func relativeTo(base, path string) string {
+	rel, err := filepath.Rel(base, path)
+	if err != nil {
+		return path
+	}
+	return rel
 }
 
 func digestBytes(payload []byte) string {

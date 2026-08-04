@@ -85,6 +85,7 @@ func (e *Engine) LoadIndex(ctx context.Context) (Index, error) {
 		return Index{}, err
 	}
 	path := e.layout.indexPath()
+	// #nosec G304 -- path is always layout.indexPath() under the engine root, never caller-supplied.
 	payload, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -118,7 +119,7 @@ func writeJSONAtomic(path string, value any) error {
 		return err
 	}
 	payload = append(payload, '\n')
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return fmt.Errorf("create index directory: %w", err)
 	}
 	temp, err := os.CreateTemp(filepath.Dir(path), ".index-*.tmp")
@@ -126,17 +127,17 @@ func writeJSONAtomic(path string, value any) error {
 		return err
 	}
 	tempPath := temp.Name()
-	defer os.Remove(tempPath)
+	defer func() { _ = os.Remove(tempPath) }()
 	if err := temp.Chmod(0o644); err != nil {
-		temp.Close()
+		_ = temp.Close()
 		return err
 	}
 	if _, err := temp.Write(payload); err != nil {
-		temp.Close()
+		_ = temp.Close()
 		return err
 	}
 	if err := temp.Sync(); err != nil {
-		temp.Close()
+		_ = temp.Close()
 		return err
 	}
 	if err := temp.Close(); err != nil {

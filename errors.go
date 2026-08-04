@@ -34,7 +34,7 @@ type PolicyRule string
 const (
 	RulePathDisclosure PolicyRule = "path-disclosure"
 	RuleInternalPath   PolicyRule = "internal-path"
-	RuleCredentialPair PolicyRule = "credential-assignment"
+	RuleCredentialPair PolicyRule = "credential-field-shape" //nolint:gosec // G101: rule id in closed vocabulary, not a secret value
 	RuleTokenShape     PolicyRule = "token-shape"
 	RuleInvalidUTF8    PolicyRule = "invalid-utf8"
 	RuleURLScheme      PolicyRule = "url-scheme"

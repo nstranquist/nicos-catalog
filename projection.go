@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -152,7 +153,8 @@ func withEntity(id string, err error) error {
 	if err == nil {
 		return nil
 	}
-	if policy, ok := err.(*PolicyError); ok {
+	var policy *PolicyError
+	if errors.As(err, &policy) {
 		policy.EntityID = id
 		return policy
 	}

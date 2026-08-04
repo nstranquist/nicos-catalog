@@ -59,12 +59,12 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	case "validate":
 		report, err := engine.Validate(ctx)
 		return reportResult(stdout, stderr, *jsonOutput, report, err, func() {
-			fmt.Fprintf(stdout, "valid: %d entities from %d provider(s); %d warning(s)\n", report.EntityCount, report.ProviderCount, len(report.Warnings))
+			_, _ = fmt.Fprintf(stdout, "valid: %d entities from %d provider(s); %d warning(s)\n", report.EntityCount, report.ProviderCount, len(report.Warnings))
 		})
 	case "reindex":
 		report, err := engine.Reindex(ctx)
 		return reportResult(stdout, stderr, *jsonOutput, report, err, func() {
-			fmt.Fprintf(stdout, "indexed %d entities at %s\n", report.EntityCount, report.IndexPath)
+			_, _ = fmt.Fprintf(stdout, "indexed %d entities at %s\n", report.EntityCount, report.IndexPath)
 		})
 	case "search":
 		return runSearch(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
@@ -74,9 +74,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		report, err := engine.Drift(ctx)
 		code := reportResult(stdout, stderr, *jsonOutput, report, err, func() {
 			if report.Changed {
-				fmt.Fprintf(stdout, "drift: %s\n", report.Reason)
+				_, _ = fmt.Fprintf(stdout, "drift: %s\n", report.Reason)
 			} else {
-				fmt.Fprintln(stdout, "drift: clean")
+				_, _ = fmt.Fprintln(stdout, "drift: clean")
 			}
 		})
 		if code == 0 && report.Changed {
@@ -88,7 +88,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	case "project":
 		return runProject(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	default:
-		fmt.Fprintf(stderr, "unknown command %q\n\n", command)
+		_, _ = fmt.Fprintf(stderr, "unknown command %q\n\n", command)
 		printUsage(stderr)
 		return 2
 	}
@@ -108,7 +108,7 @@ func runVersion(args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	if jsonOutput {
 		return writeJSON(stdout, stderr, info)
 	}
-	fmt.Fprintln(stdout, info.Version)
+	_, _ = fmt.Fprintln(stdout, info.Version)
 	return 0
 }
 
@@ -129,7 +129,7 @@ func runSearch(ctx context.Context, engine *catalog.Engine, args []string, jsonO
 		return writeJSON(stdout, stderr, results)
 	}
 	for _, result := range results {
-		fmt.Fprintf(stdout, "%.3f\t%s\t%s\n", result.Score, result.Entity.ID, result.Entity.Name)
+		_, _ = fmt.Fprintf(stdout, "%.3f\t%s\t%s\n", result.Score, result.Entity.ID, result.Entity.Name)
 	}
 	return 0
 }
@@ -152,7 +152,7 @@ func runGraph(ctx context.Context, engine *catalog.Engine, args []string, jsonOu
 	if *format != "mermaid" {
 		return fail(stderr, fmt.Errorf("unsupported graph format %q", *format))
 	}
-	fmt.Fprint(stdout, graph.Mermaid())
+	_, _ = fmt.Fprint(stdout, graph.Mermaid())
 	return 0
 }
 
@@ -171,11 +171,11 @@ func runReconcile(ctx context.Context, engine *catalog.Engine, args []string, js
 	return reportResult(stdout, stderr, jsonOutput, report, err, func() {
 		switch {
 		case report.Applied:
-			fmt.Fprintln(stdout, "reconciled: index rebuilt")
+			_, _ = fmt.Fprintln(stdout, "reconciled: index rebuilt")
 		case report.Drift.Changed:
-			fmt.Fprintln(stdout, "reconcile needed; rerun with --apply")
+			_, _ = fmt.Fprintln(stdout, "reconcile needed; rerun with --apply")
 		default:
-			fmt.Fprintln(stdout, "reconcile: clean")
+			_, _ = fmt.Fprintln(stdout, "reconcile: clean")
 		}
 	})
 }
@@ -204,7 +204,7 @@ func runProject(ctx context.Context, engine *catalog.Engine, args []string, json
 		return writeJSON(stdout, stderr, projection)
 	}
 	for _, item := range projection.Items {
-		fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Kind, item.Name)
+		_, _ = fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Kind, item.Name)
 	}
 	return 0
 }
@@ -226,7 +226,7 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	if err != nil {
 		return fail(stderr, err)
 	}
-	defer os.RemoveAll(root)
+	defer func() { _ = os.RemoveAll(root) }()
 	layout, err := catalog.DefaultLayout(root).Resolve(root)
 	if err != nil {
 		return fail(stderr, err)
@@ -255,9 +255,9 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	if jsonOutput {
 		return writeJSON(stdout, stderr, report)
 	}
-	fmt.Fprintf(stdout, "Nicos Catalog demo: %d synthetic entities, %d public items\n", reindexed.EntityCount, len(projection.Items))
+	_, _ = fmt.Fprintf(stdout, "Nicos Catalog demo: %d synthetic entities, %d public items\n", reindexed.EntityCount, len(projection.Items))
 	for _, result := range results {
-		fmt.Fprintf(stdout, "  %.3f  %s — %s\n", result.Score, result.Entity.ID, result.Entity.Name)
+		_, _ = fmt.Fprintf(stdout, "  %.3f  %s — %s\n", result.Score, result.Entity.ID, result.Entity.Name)
 	}
 	return 0
 }
@@ -309,13 +309,13 @@ func fail(stderr io.Writer, err error) int {
 	if err == nil {
 		err = errors.New("unknown error")
 	}
-	fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
+	_, _ = fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
 	return 1
 }
 
 func printUsage(w io.Writer) {
 	name := filepath.Base(os.Args[0])
-	fmt.Fprintf(w, `Nicos Catalog — typed software-catalog engine
+	_, _ = fmt.Fprintf(w, `Nicos Catalog — typed software-catalog engine
 
 Usage:
   %s [layout flags] <command> [command flags]

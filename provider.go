@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -128,6 +129,7 @@ func (p FilesystemProvider) Provide(ctx context.Context, layout Layout) ([]Recor
 	sort.Strings(paths)
 	var records []Record
 	for _, path := range paths {
+		// #nosec G304 -- path is produced by WalkDir under layout.CorpusDir only.
 		payload, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", path, err)
@@ -257,11 +259,10 @@ func decodeYAML(payload []byte, target any, strict bool) error {
 		return err
 	}
 	var trailing any
-	if err := decoder.Decode(&trailing); err != io.EOF {
-		if err == nil {
-			return fmt.Errorf("multiple YAML documents are not supported")
-		}
+	if err := decoder.Decode(&trailing); err != nil && !errors.Is(err, io.EOF) {
 		return err
+	} else if err == nil {
+		return fmt.Errorf("multiple YAML documents are not supported")
 	}
 	return nil
 }
@@ -276,13 +277,14 @@ func decodeJSON(payload []byte, target any, strict bool) error {
 		return err
 	}
 	var trailing any
-	if err := decoder.Decode(&trailing); err != io.EOF {
-		if err == nil {
-			return fmt.Errorf("multiple JSON values are not supported")
-		}
-		return err
+	err := decoder.Decode(&trailing)
+	if errors.Is(err, io.EOF) {
+		return nil
 	}
-	return nil
+	if err == nil {
+		return fmt.Errorf("multiple JSON values are not supported")
+	}
+	return err
 }
 
 func splitFrontmatter(payload []byte) ([]byte, []byte, bool) {

@@ -49,7 +49,7 @@ func exampleEngine() (*catalog.Engine, func()) {
 	if err != nil {
 		panic(err)
 	}
-	return engine, func() { os.RemoveAll(root) }
+	return engine, func() { _ = os.RemoveAll(root) }
 }
 
 // The engine compiles authored facts into a deterministic index, then answers
@@ -91,7 +91,7 @@ func ExampleNew() {
 	if err != nil {
 		panic(err)
 	}
-	defer os.RemoveAll(root)
+	defer func() { _ = os.RemoveAll(root) }()
 
 	layout, err := catalog.DefaultLayout(root).Resolve(root)
 	if err != nil {
@@ -140,7 +140,7 @@ func ExampleWithStrictReferences() {
 	if err != nil {
 		panic(err)
 	}
-	defer os.RemoveAll(root)
+	defer func() { _ = os.RemoveAll(root) }()
 
 	layout, err := catalog.DefaultLayout(root).Resolve(root)
 	if err != nil {
@@ -306,7 +306,7 @@ func ExampleFilesystemProvider() {
 	if err != nil {
 		panic(err)
 	}
-	defer os.RemoveAll(root)
+	defer func() { _ = os.RemoveAll(root) }()
 
 	layout, err := catalog.DefaultLayout(root).Resolve(root)
 	if err != nil {

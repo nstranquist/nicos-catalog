@@ -179,10 +179,10 @@ jobs:
       - run: make bench
 
   # The module promises deterministic output; the binary should be reproducible.
-  # Empty -buildid= removes the linker's non-deterministic build ID (the class of
-  # failure observed on ubuntu-latest 2026-08-04 when bare -trimpath dual-builds
-  # differed after go clean -cache). CGO is off so the pure-Go path is the one
-  # under test. make repro exercises the same flags locally.
+  # Two independent GOCACHE trees force full recompiles without go clean -cache
+  # (which still produced non-identical ELF binaries on ubuntu-latest 2026-08-04
+  # even with -ldflags=-buildid=). Empty buildid + no VCS stamp + CGO off keep
+  # the pure-Go path stable. make repro matches this contract locally.
   reproducible:
     runs-on: ubuntu-latest
     steps:
@@ -190,13 +190,14 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - name: Dual-build bit-identical after cache wipe
+      - name: Dual-build bit-identical across isolated caches
         env:
           CGO_ENABLED: "0"
         run: |
-          flags=(-trimpath -ldflags=-buildid=)
-          go build "${flags[@]}" -o first ./cmd/nicos-catalog
-          go clean -cache
-          go build "${flags[@]}" -o second ./cmd/nicos-catalog
-          sha256sum first second
-          cmp first second
+          set -euo pipefail
+          flags=(-trimpath -buildvcs=false -ldflags=-buildid=)
+          d=$(mktemp -d)
+          GOCACHE="$d/c1" go build "${flags[@]}" -o "$d/first" ./cmd/nicos-catalog
+          GOCACHE="$d/c2" go build "${flags[@]}" -o "$d/second" ./cmd/nicos-catalog
+          sha256sum "$d/first" "$d/second"
+          cmp "$d/first" "$d/second"

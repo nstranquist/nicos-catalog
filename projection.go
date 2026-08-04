@@ -291,7 +291,10 @@ func validatePublicURL(raw string, allowed map[string]struct{}) error {
 	if parsed.User != nil {
 		return &PolicyError{Field: "public_url", Rule: RuleURLCredentials, Err: ErrPublicURLRejected}
 	}
-	if parsed.RawQuery != "" || parsed.Fragment != "" {
+	// url.Parse treats a trailing empty fragment ("…#") as Fragment==""; still reject
+	// any raw query or fragment marker so fuzz and policy stay fail-closed.
+	if parsed.RawQuery != "" || parsed.Fragment != "" || parsed.RawFragment != "" ||
+		strings.Contains(raw, "?") || strings.Contains(raw, "#") {
 		return &PolicyError{Field: "public_url", Rule: RuleURLQuery, Err: ErrPublicURLRejected}
 	}
 	if port := parsed.Port(); port != "" && port != "443" {

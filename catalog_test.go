@@ -174,6 +174,7 @@ func TestPublicProjectionRejectsUnsafeURLsAndContent(t *testing.T) {
 		{"credentials", func(e *Entity) { e.PublicURL = "https://user:pass@example.com/item" }, RuleURLCredentials, "public_url"},
 		{"query", func(e *Entity) { e.PublicURL = "https://example.com/item?token=secret" }, RuleURLQuery, "public_url"},
 		{"fragment", func(e *Entity) { e.PublicURL = "https://example.com/item#private" }, RuleURLQuery, "public_url"},
+		{"empty-fragment", func(e *Entity) { e.PublicURL = "https://example.com/#" }, RuleURLQuery, "public_url"},
 		{"port", func(e *Entity) { e.PublicURL = "https://example.com:8443/item" }, RuleURLPort, "public_url"},
 		{"host", func(e *Entity) { e.PublicURL = "https://elsewhere.test/item" }, RuleURLHost, "public_url"},
 		{"url_path", func(e *Entity) { e.PublicURL = "https://example.com/Users/someone/secret" }, RulePathDisclosure, "public_url"},

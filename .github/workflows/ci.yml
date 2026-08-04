@@ -179,6 +179,10 @@ jobs:
       - run: make bench
 
   # The module promises deterministic output; the binary should be reproducible.
+  # Empty -buildid= removes the linker's non-deterministic build ID (the class of
+  # failure observed on ubuntu-latest 2026-08-04 when bare -trimpath dual-builds
+  # differed after go clean -cache). CGO is off so the pure-Go path is the one
+  # under test. make repro exercises the same flags locally.
   reproducible:
     runs-on: ubuntu-latest
     steps:
@@ -186,9 +190,13 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: |
-          go build -trimpath -o first ./cmd/nicos-catalog
+      - name: Dual-build bit-identical after cache wipe
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          flags=(-trimpath -ldflags=-buildid=)
+          go build "${flags[@]}" -o first ./cmd/nicos-catalog
           go clean -cache
-          go build -trimpath -o second ./cmd/nicos-catalog
+          go build "${flags[@]}" -o second ./cmd/nicos-catalog
           sha256sum first second
           cmp first second

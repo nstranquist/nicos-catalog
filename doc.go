@@ -1,10 +1,10 @@
-// Package catalog is a typed, local-first software-catalog engine.
+// Package catalog is a local software-catalog engine.
 //
-// A host injects its own filesystem boundaries and providers; the engine
-// supplies deterministic validation, indexing, BM25 full-text search, graph
-// compilation, drift and reconcile gates, and a closed privacy-safe
-// publication DTO. Nothing about a repository layout, home directory, or
-// business model is assumed.
+// A host supplies the folder layout and data plugins. The engine validates
+// records, indexes them, searches them with BM25, builds a relationship graph,
+// and fails a drift check when the catalog no longer matches the source files.
+// The public export format omits private data. The engine does not assume a
+// repository layout, home directory, or business model.
 //
 // # Pipeline
 //

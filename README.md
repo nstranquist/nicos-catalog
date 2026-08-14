@@ -5,15 +5,16 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/nstranquist/nicos-catalog)](https://goreportcard.com/report/github.com/nstranquist/nicos-catalog)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Nicos Catalog is a typed, local-first software-catalog engine for repositories,
-services, products, documents, and the relationships between them. Hosts inject
-their own filesystem layout and providers; the engine supplies deterministic
-validation, indexing, BM25 full-text search, graph compilation, drift/reconcile
-gates, and a closed privacy-safe publication DTO.
+Nicos Catalog is a local software-catalog engine for repositories, services,
+products, documents, and the relationships between them. A host supplies the
+folder layout and data plugins. The engine validates records, indexes them,
+searches them (BM25), builds a relationship graph, and fails a drift check
+when the catalog no longer matches the source files. The public export format
+omits private data.
 
-The public core deliberately excludes personal telemetry, business valuation,
-private query text, runtime credentials, and host-specific portfolio policy.
-Those stay in host adapters.
+The public core leaves out personal telemetry, business valuation, private
+query text, runtime credentials, and host-only portfolio policy. Those stay
+in host adapters.
 
 ## Install
 
@@ -82,14 +83,14 @@ documents, and records without IDs; the CLI enables strict mode. It skips
 generated/cache directories plus `_archive` by default; hosts can add directory
 names through `ExcludeDirs`.
 `StaticProvider` supports embedded fixtures and API-backed hosts. Provider output
-is normalized and sorted; duplicate IDs fail closed across provider boundaries.
+is normalized and sorted. Duplicate IDs are rejected, even across providers.
 
 ## Privacy boundary
 
-`ProjectPublic` produces a closed `PublicEntity` DTO. It cannot encode source
+`ProjectPublic` produces a closed `PublicEntity` export. It cannot encode source
 paths, annotations, owner fields, telemetry, query text, valuation, or sidecar
 data. Hosts may further restrict visibility, kinds, tags, URL hosts, and summary
-length. Publication should consume this DTO rather than filtering the private
+length. Publication should use this export rather than filtering the private
 index after serialization.
 
 ## Why this exists

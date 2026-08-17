@@ -7,6 +7,10 @@ assets:
       kind: screenshot
       alt: Nicos Catalog running inside Catalog Gallery as an independent synthetic host
       caption: The public engine proof exercises provider injection, deterministic BM25 search, typed graphs, drift checks, and the closed projection.
+    - path: screenshots/demo-cli.png
+      kind: screenshot
+      alt: nicos-catalog demo, reindex, and clean drift on the synthetic corpus
+      caption: Terminal walk of the public demo corpus.
     - path: assets/brand/nicos-catalog.svg
       kind: logo
       alt: Nicos Catalog application icon

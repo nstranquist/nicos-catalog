@@ -16,6 +16,16 @@ The public core leaves out personal telemetry, business valuation, private
 query text, runtime credentials, and host-only portfolio policy. Those stay
 in host adapters.
 
+## Showcase
+
+<img src="assets/brand/nicos-catalog.svg" width="96" height="96" alt="Nicos Catalog application icon">
+
+![Nicos Catalog running inside Catalog Gallery as an independent synthetic host](portfolio/assets/catalog-engine.png)
+
+This page is a second host of the public Go engine. The entities are
+synthetic fixtures; the engine boundary is real. A CLI walk of the same
+demo is in [screenshots/](screenshots/).
+
 ## Install
 
 Requires Go 1.24 or newer.

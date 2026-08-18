@@ -1,0 +1,10 @@
+schema_version: 1
+id: product.collate-docs
+name: Collate Docs
+kind: product
+surface: products
+status: shipped
+description: Fixture product registered to the opted-in GitHub profile.
+tags:
+  - fixture
+  - registered

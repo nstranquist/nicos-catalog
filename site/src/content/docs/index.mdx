@@ -1,0 +1,43 @@
+---
+title: Nicos Catalog
+description: Typed, local-first software-catalog engine. Hosts inject Layout and providers; the engine owns validation, search, graph, drift, and a closed public DTO.
+template: splash
+hero:
+  title: Nicos Catalog
+  tagline: A typed, local-first software-catalog engine. Point a Layout at a corpus. Get deterministic validation, BM25 search, a typed graph, drift gates, and a closed publication DTO.
+  actions:
+    - text: Docs
+      link: /docs/
+      icon: right-arrow
+      variant: primary
+    - text: Install
+      link: /install/
+      variant: secondary
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Hosts inject layout" icon="setting">
+    You own the filesystem and providers. The engine does not infer a repo home or call host commands.
+  </Card>
+  <Card title="Derived state is deterministic" icon="approve-check">
+    Identical provider output reindexes to identical bytes. Drift is a gate, not a guess.
+  </Card>
+  <Card title="Publication is closed" icon="seti:lock">
+    `PublicEntity` cannot represent paths, owners, telemetry, query text, or valuation.
+  </Card>
+</CardGrid>
+
+## Docs
+
+This book is the **engine** user manual (`nicos-catalog` module and CLI). Host-only `ndev` verbs stay in the nicos-tools operator docs.
+
+<CardGrid>
+  <LinkCard title="Docs" href="/docs/" description="Enter the book. Sidebar, search, and every engine page." />
+  <LinkCard title="Search" href="/search/" description="BM25 over the derived index." />
+  <LinkCard title="Graph" href="/graph/" description="Typed relationship graph as Mermaid or JSON." />
+  <LinkCard title="Drift and reconcile" href="/drift/" description="Exit code 3 means the catalog moved." />
+  <LinkCard title="API stability" href="/stability/" description="Go SemVer, SchemaVersion, and errors." />
+  <LinkCard title="Privacy and public DTO" href="/privacy/" description="What PublicEntity cannot encode." />
+</CardGrid>

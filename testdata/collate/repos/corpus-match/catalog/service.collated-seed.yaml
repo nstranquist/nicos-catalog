@@ -1,0 +1,6 @@
+id: service.collated-seed
+name: Collated Seed
+kind: service
+status: shipped
+visibility: public
+description: Fixture corpus entity from a profile-matching clone.

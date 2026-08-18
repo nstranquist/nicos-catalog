@@ -1,0 +1,30 @@
+/*
+ * Nicos Catalog public documentation tokens.
+ * Apache-2.0; source of truth is this repository.
+ */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --bg: #11100e;
+  --surface: #181714;
+  --surface-2: #24211d;
+  --fg: #f5f1e8;
+  --muted: #b6afa3;
+  --border: #49443b;
+  --primary: #f0b75e;
+  --code: #211f1b;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-2: #ece5d8;
+  --fg: #211d18;
+  --muted: #625b51;
+  --border: #c8bfb0;
+  --primary: #7a4a00;
+  --code: #eee7dc;
+}

@@ -200,7 +200,7 @@ func TestUsageAndHelp(t *testing.T) {
 		if !strings.Contains(text, "Nicos Catalog") {
 			t.Fatalf("args %v produced no usage banner: %q (code %d)", args, text, code)
 		}
-		for _, command := range []string{"validate", "reindex", "search", "graph", "drift", "reconcile", "project", "demo", "version"} {
+		for _, command := range []string{"validate", "reindex", "search", "graph", "drift", "reconcile", "project", "collate", "demo", "version"} {
 			if !strings.Contains(text, command) {
 				t.Fatalf("usage does not mention %q", command)
 			}

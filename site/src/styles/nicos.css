@@ -1,0 +1,67 @@
+/* Public, repository-local token spine. */
+@import './tokens.css';
+
+:root,
+:root[data-theme='dark'] {
+  --sl-font: var(--font-sans);
+  --sl-font-mono: var(--font-mono);
+  --sl-color-white: var(--fg);
+  --sl-color-gray-1: var(--fg);
+  --sl-color-gray-2: color-mix(in oklch, var(--fg) 82%, var(--bg));
+  --sl-color-gray-3: var(--muted);
+  --sl-color-gray-4: var(--border);
+  --sl-color-gray-5: var(--surface-2);
+  --sl-color-gray-6: var(--surface);
+  --sl-color-black: var(--bg);
+  --sl-color-accent-low: color-mix(in oklch, var(--primary) 22%, var(--bg));
+  --sl-color-accent: var(--primary);
+  --sl-color-accent-high: color-mix(in oklch, var(--primary) 70%, var(--fg));
+  --sl-color-text: var(--fg);
+  --sl-color-text-accent: var(--primary);
+  --sl-color-bg: var(--bg);
+  --sl-color-bg-nav: var(--surface);
+  --sl-color-bg-sidebar: var(--surface);
+  --sl-color-bg-inline-code: var(--code);
+  --sl-color-hairline: var(--border);
+  --sl-color-hairline-light: var(--border);
+  --sl-color-bg-accent: var(--primary);
+}
+
+:root[data-theme='light'] {
+  /* Starlight's "white" is high-contrast text, not a background. Mapping it
+     to --bg made the splash h1 invisible on the light page. */
+  --sl-color-white: var(--fg);
+  --sl-color-gray-1: var(--fg);
+  --sl-color-gray-2: color-mix(in oklch, var(--fg) 82%, var(--bg));
+  --sl-color-gray-3: var(--muted);
+  --sl-color-gray-4: var(--border);
+  --sl-color-gray-5: var(--surface-2);
+  --sl-color-gray-6: var(--surface);
+  --sl-color-black: var(--bg);
+  --sl-color-accent-low: color-mix(in oklch, var(--primary) 14%, var(--bg));
+  --sl-color-accent: var(--primary);
+  --sl-color-accent-high: color-mix(in oklch, var(--primary) 55%, var(--fg));
+  --sl-color-text: var(--fg);
+  --sl-color-bg: var(--bg);
+}
+
+html {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.site-title {
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.hero h1,
+.hero .tagline {
+  color: var(--fg);
+}
+
+.hero .tagline {
+  max-width: 42rem;
+  opacity: 1;
+}

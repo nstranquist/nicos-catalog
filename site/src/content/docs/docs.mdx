@@ -1,0 +1,36 @@
+---
+title: Docs
+description: The Nicos Catalog engine book — install, host contract, search, graph, drift, CLI, and the closed public DTO.
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+This book is the user manual for the portable **nicos-catalog** module and CLI. Hosts inject a `Layout` and providers. The engine owns validation, the deterministic index, BM25 search, the typed graph, drift and reconcile, and a closed publication DTO.
+
+It does not teach host-only `ndev` verbs.
+
+## Start
+
+<CardGrid>
+  <LinkCard title="Install" href="/install/" description="Go 1.24+, the CLI, and the five-minute smoke." />
+  <LinkCard title="Host contract" href="/host/" description="Layout, Provider, FilesystemProvider, and StaticProvider." />
+  <LinkCard title="CLI" href="/cli/" description="validate, reindex, search, graph, drift, collate, project, demo." />
+</CardGrid>
+
+## Use the engine
+
+<CardGrid>
+  <LinkCard title="Search" href="/search/" description="BM25 over the derived index. Rank order is stable. Scores are not." />
+  <LinkCard title="Graph" href="/graph/" description="Typed relationship graph as Mermaid or JSON." />
+  <LinkCard title="Drift and reconcile" href="/drift/" description="Compare authored facts to the index. Exit code 3 means the catalog moved." />
+</CardGrid>
+
+## Contracts
+
+<CardGrid>
+  <LinkCard title="Architecture" href="/architecture/" description="Authored facts, derived state, and public projection." />
+  <LinkCard title="API stability" href="/stability/" description="Go SemVer, SchemaVersion, errors, and determinism." />
+  <LinkCard title="Privacy and public DTO" href="/privacy/" description="What PublicEntity cannot encode." />
+  <LinkCard title="Migrate from v0.1" href="/migrate/" description="Mechanical replacements for v0.2.0." />
+  <LinkCard title="Contribute" href="/contribute/" description="Local gate and host-independence rules." />
+</CardGrid>

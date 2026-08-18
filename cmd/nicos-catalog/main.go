@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	catalog "github.com/nstranquist/nicos-catalog"
+	"github.com/nstranquist/nicos-catalog/internal/hostcollate"
 )
 
 func main() {
@@ -50,7 +51,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
-	engine, err := catalog.New(layout, catalog.WithProviders(catalog.FilesystemProvider{ProviderName: "host-filesystem", Strict: true}))
+	engine, err := newHostEngine(ctx, command, *root, layout)
 	if err != nil {
 		return fail(stderr, err)
 	}
@@ -87,6 +88,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return runReconcile(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "project":
 		return runProject(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
+	case "collate":
+		return runCollate(ctx, *root, layout, commandArgs, *jsonOutput, stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "unknown command %q\n\n", command)
 		printUsage(stderr)
@@ -205,6 +208,87 @@ func runProject(ctx context.Context, engine *catalog.Engine, args []string, json
 	}
 	for _, item := range projection.Items {
 		_, _ = fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Kind, item.Name)
+	}
+	return 0
+}
+
+func newHostEngine(ctx context.Context, command, hostRoot string, layout catalog.Layout) (*catalog.Engine, error) {
+	providers := []catalog.Provider{catalog.FilesystemProvider{ProviderName: "host-filesystem", Strict: true}}
+	switch command {
+	case "validate", "reindex", "drift", "reconcile":
+		records, err := collatedRecords(ctx, hostRoot, layout)
+		if err != nil {
+			return nil, err
+		}
+		if len(records) > 0 {
+			providers = append(providers, hostcollate.RecordsProvider{ProviderName: hostcollate.ProviderName, Records: records})
+		}
+	}
+	return catalog.New(layout, catalog.WithProviders(providers...))
+}
+
+func collatedRecords(ctx context.Context, hostRoot string, layout catalog.Layout) ([]catalog.Record, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = ""
+	}
+	absRoot, err := filepath.Abs(hostRoot)
+	if err != nil {
+		return nil, err
+	}
+	_, records, err := hostcollate.Discover(ctx, hostcollate.Options{
+		HostRoot:  absRoot,
+		ConfigDir: layout.ConfigDir,
+		CacheDir:  layout.CacheDir,
+		CorpusDir: layout.CorpusDir,
+		Sidecars:  layout.SidecarDataDir,
+		Home:      home,
+	})
+	return records, err
+}
+
+func runCollate(ctx context.Context, hostRoot string, layout catalog.Layout, args []string, jsonOutput bool, stdout, stderr io.Writer) int {
+	flags := flag.NewFlagSet("collate", flag.ContinueOnError)
+	flags.SetOutput(stderr)
+	apply := flags.Bool("apply", false, "rebuild the derived index from collated records; never mutates scanned repos")
+	writeSnapshot := flags.Bool("write-snapshot", false, "persist the last-collation snapshot without requiring --apply")
+	fromSnapshot := flags.Bool("from-snapshot", false, "print the last snapshot without walking roots")
+	profileRepos := flags.String("profile-repos", "", "comma-separated owner/repo list for missing-clone compare")
+	enrollManifest := flags.String("enroll-manifest", "", "observe-only compare against an external-projects.yaml copy")
+	if err := flags.Parse(args); err != nil {
+		return 2
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = ""
+	}
+	absRoot, err := filepath.Abs(hostRoot)
+	if err != nil {
+		return fail(stderr, err)
+	}
+	report, err := hostcollate.Run(ctx, hostcollate.Options{
+		HostRoot:       absRoot,
+		ConfigDir:      layout.ConfigDir,
+		CacheDir:       layout.CacheDir,
+		CorpusDir:      layout.CorpusDir,
+		Sidecars:       layout.SidecarDataDir,
+		Home:           home,
+		Apply:          *apply,
+		WriteSnapshot:  *writeSnapshot || *apply,
+		FromSnapshot:   *fromSnapshot,
+		ProfileRepos:   splitCSV(*profileRepos),
+		EnrollManifest: strings.TrimSpace(*enrollManifest),
+	})
+	if jsonOutput {
+		if code := writeJSON(stdout, stderr, report); code != 0 {
+			return code
+		}
+	} else {
+		fmt.Fprint(stdout, hostcollate.FormatReport(report))
+	}
+	if err != nil {
+		fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
+		return 1
 	}
 	return 0
 }
@@ -328,6 +412,7 @@ Commands:
   drift       compare authored sources with the derived index
   reconcile   report drift or rebuild with --apply
   project     emit the closed, privacy-safe public DTO
+  collate     GitHub-local collation report; --apply, --from-snapshot, --profile-repos, --enroll-manifest
   demo        run an entirely synthetic end-to-end host
   version     print build identity; supports --expect %s
 

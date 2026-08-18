@@ -1,6 +1,9 @@
 # Architecture
 
 Nicos Catalog separates authored facts, derived state, and public projection.
+This public repository is the only editable authority for the portable product
+code. Hosts consume a released module version and keep host-only policy in their
+own repositories; they do not maintain an upstream product mirror.
 
 1. A host injects a `Layout` and one or more `Provider` implementations.
 2. Providers emit portable `Record` values with provenance.
@@ -34,6 +37,10 @@ Hosts own:
 The engine does not read environment-specific home directories, shell out to
 host commands, or infer a repository layout. This keeps two hosts independent:
 they may execute the same core with unrelated Layouts and providers.
+
+GitHub-local collation lives in the host CLI (`nicos-catalog collate`). Settings,
+remote parsing, and root walks stay outside this package. Collated records enter
+through the existing Provider interface.
 
 ## Determinism
 

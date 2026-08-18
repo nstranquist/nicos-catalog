@@ -1,0 +1,7 @@
+schema_version: 1
+id: product.collate-other
+name: Other Owner Product
+kind: product
+surface: products
+status: shipped
+description: Fixture product registered but owned by a different GitHub profile.

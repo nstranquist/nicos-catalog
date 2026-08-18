@@ -1,9 +1,10 @@
-.PHONY: verify demo install release-check cover fuzz bench repro
+.PHONY: verify demo install release-check cover fuzz bench docs-site repro
 
 # Coverage floors ratchet upward only. Raising them is a normal change; lowering
 # them is a decision that should be argued for in review.
 COVER_FLOOR_ROOT ?= 90.0
 COVER_FLOOR_CMD  ?= 80.0
+COVER_FLOOR_HOST ?= 85.0
 
 # The published version lives in exactly one place.
 VERSION := $(shell cat VERSION)
@@ -21,17 +22,20 @@ verify: cover
 	go build $(REPRO_FLAGS) -o /dev/null ./cmd/nicos-catalog
 	$(MAKE) repro
 
-# Two profiles, because `go tool cover -func` totals per profile and the library
-# and its CLI carry different floors.
+# Three profiles: library, CLI, and host-only collation adapter.
 cover:
 	go test -covermode=atomic -coverprofile=cover-root.out .
 	go test -covermode=atomic -coverprofile=cover-cmd.out ./cmd/...
+	go test -covermode=atomic -coverprofile=cover-host.out ./internal/hostcollate
 	@go tool cover -func=cover-root.out | awk -v f=$(COVER_FLOOR_ROOT) \
 	  '/^total:/{gsub(/%/,"",$$3); if ($$3+0 < f) {printf "root coverage %.1f%% is below the %.1f%% floor\n",$$3,f; exit 1} \
 	   else {printf "root coverage %.1f%% (floor %.1f%%)\n",$$3,f}}'
 	@go tool cover -func=cover-cmd.out | awk -v f=$(COVER_FLOOR_CMD) \
 	  '/^total:/{gsub(/%/,"",$$3); if ($$3+0 < f) {printf "cmd coverage %.1f%% is below the %.1f%% floor\n",$$3,f; exit 1} \
 	   else {printf "cmd coverage %.1f%% (floor %.1f%%)\n",$$3,f}}'
+	@go tool cover -func=cover-host.out | awk -v f=$(COVER_FLOOR_HOST) \
+	  '/^total:/{gsub(/%/,"",$$3); if ($$3+0 < f) {printf "hostcollate coverage %.1f%% is below the %.1f%% floor\n",$$3,f; exit 1} \
+	   else {printf "hostcollate coverage %.1f%% (floor %.1f%%)\n",$$3,f}}'
 
 # A short smoke over every fuzz target. The nightly workflow runs these longer.
 fuzz:
@@ -47,6 +51,9 @@ bench:
 
 demo:
 	go run ./cmd/nicos-catalog --json demo
+
+docs-site:
+	cd site && pnpm install && pnpm build
 
 install:
 	go install ./cmd/nicos-catalog

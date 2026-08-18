@@ -63,6 +63,20 @@ nicos-catalog --root . --corpus demo/catalog drift
 nicos-catalog --root . --corpus demo/catalog --json project --visibility public --allow-hosts example.com
 ```
 
+GitHub-local collation is a host command, off until `<config>/settings.yaml`
+names a profile and sets `github.collation.enabled: true`. It walks local
+clones only; registered repos emit records, and `--apply` rebuilds the derived
+index without mutating those clones. With collation on, `reindex` keeps those
+records instead of wiping them. Settings can bound the walk (`max_repos`,
+`skip_dir_names`). `--apply` writes a snapshot; `--from-snapshot` reads it
+without walking. `--profile-repos` fills the missing-clone bucket. Factory
+enrollment gaps are observe-only (`--enroll-manifest` / `ndev catalog external gaps`).
+
+```sh
+nicos-catalog --json collate
+nicos-catalog --json collate --apply
+```
+
 ## Host contract
 
 ```go

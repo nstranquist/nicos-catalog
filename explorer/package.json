@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc -b && vite build",
-    "check": "tsc -b --pretty false && vitest run --coverage && pnpm run build && node scripts/verify-bundle.mjs dist",
+    "check": "tsc -b --pretty false && vitest run --coverage && vite build && node scripts/verify-bundle.mjs dist",
     "dev": "vite --host 127.0.0.1",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -30,6 +30,7 @@ Run the UI and embedded-asset gates:
 ```sh
 make explorer-check
 make verify-explorer-embed
+make perf
 ```
 
 The Explorer must not use a `file:` or `link:` dependency outside this
@@ -49,6 +50,10 @@ and never invokes Node.
 Add direct tests for URL state, selection, filters, pagination, error states,
 graph limits, and keyboard behavior. Explorer logic must keep at least 80
 percent branch coverage.
+
+`make perf` applies a latency ratchet only to a matching hardware class. Add a
+reviewed baseline before you use a new hardware class as a release gate. Do not
+raise a latency budget without a performance review.
 
 Keep the core host-independent. New fields require a concrete cross-host need;
 private telemetry, valuation, credentials, and publication policy belong in

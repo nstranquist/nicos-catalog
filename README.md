@@ -177,6 +177,7 @@ that make a catalog operational: provider boundaries, deterministic derived
 state, search, typed relationships, and drift enforcement.
 
 See [the Explorer guide](docs/explorer.md),
+[the performance guide](docs/performance.md),
 [docs/architecture.md](docs/architecture.md), and
 [SECURITY.md](SECURITY.md).
 

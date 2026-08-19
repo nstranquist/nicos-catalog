@@ -1,4 +1,4 @@
-.PHONY: verify demo install release-check verify-publication browser-smoke cover fuzz bench docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
+.PHONY: verify demo install release-check verify-publication browser-smoke cover fuzz bench perf docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
 
 # Coverage floors ratchet upward only. Raising them is a normal change; lowering
 # them is a decision that should be argued for in review.
@@ -63,10 +63,14 @@ fuzz:
 	  go test -run '^$$' -fuzz "^$$target$$" -fuzztime=30s . || exit 1; \
 	done
 
-# Benchmarks are a crash and allocation smoke, never a timing gate: shared CI
-# runners are too noisy for a p95 assertion to mean anything.
+# Benchmarks are a crash and allocation smoke. The separate perf target applies
+# a p95 ratchet only when this repository contains a matching hardware baseline.
 bench:
 	go test -run '^$$' -bench=. -benchtime=10x -benchmem ./...
+
+perf:
+	NICOS_CATALOG_PERF=1 NICOS_CATALOG_PERF_REQUIRED=1 go test \
+	  -run '^TestExplorerPerformanceRatchet$$' -count=1 -v ./internal/explorerapi
 
 demo:
 	go run ./cmd/nicos-catalog --json demo

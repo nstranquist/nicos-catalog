@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "hardware_class": "darwin-arm64-10cpu",
+  "hardware": "Apple M1 Pro, 10-core CPU",
+  "captured_with": "go1.26.6; three rounds of 51 samples per operation; median of round p50 and p95 values",
+  "tolerance": "max_p95_ns is at least three times the accepted p95, rounded to a stable whole-millisecond budget; the 10000-entity list and search budgets include observed garbage-collection variance",
+  "measurements": [
+    {"operation": "load", "entities": 500, "accepted_p50_ns": 2470458, "accepted_p95_ns": 4919791, "max_p95_ns": 15000000},
+    {"operation": "list", "entities": 500, "accepted_p50_ns": 23375, "accepted_p95_ns": 200709, "max_p95_ns": 1000000},
+    {"operation": "search", "entities": 500, "accepted_p50_ns": 174166, "accepted_p95_ns": 771167, "max_p95_ns": 3000000},
+    {"operation": "graph", "entities": 500, "accepted_p50_ns": 60333, "accepted_p95_ns": 248000, "max_p95_ns": 1000000},
+    {"operation": "load", "entities": 4000, "accepted_p50_ns": 20238625, "accepted_p95_ns": 56662083, "max_p95_ns": 170000000},
+    {"operation": "list", "entities": 4000, "accepted_p50_ns": 247166, "accepted_p95_ns": 2435208, "max_p95_ns": 8000000},
+    {"operation": "search", "entities": 4000, "accepted_p50_ns": 2743458, "accepted_p95_ns": 5420542, "max_p95_ns": 17000000},
+    {"operation": "graph", "entities": 4000, "accepted_p50_ns": 578875, "accepted_p95_ns": 1940834, "max_p95_ns": 6000000},
+    {"operation": "load", "entities": 10000, "accepted_p50_ns": 52160625, "accepted_p95_ns": 132057167, "max_p95_ns": 400000000},
+    {"operation": "list", "entities": 10000, "accepted_p50_ns": 420416, "accepted_p95_ns": 1377167, "max_p95_ns": 8000000},
+    {"operation": "search", "entities": 10000, "accepted_p50_ns": 5506250, "accepted_p95_ns": 7378750, "max_p95_ns": 40000000},
+    {"operation": "graph", "entities": 10000, "accepted_p50_ns": 1369041, "accepted_p95_ns": 3032500, "max_p95_ns": 10000000}
+  ]
+}

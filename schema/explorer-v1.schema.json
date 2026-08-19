@@ -1,0 +1,660 @@
+{
+  "$defs": {
+    "ContentDigests": {
+      "additionalProperties": false,
+      "properties": {
+        "entities": {
+          "type": "string"
+        },
+        "graph": {
+          "type": "string"
+        },
+        "health": {
+          "type": "string"
+        },
+        "search": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entities",
+        "graph",
+        "health",
+        "search"
+      ],
+      "type": "object"
+    },
+    "Dataset": {
+      "additionalProperties": false,
+      "properties": {
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        },
+        "entities": {
+          "items": {
+            "$ref": "#/$defs/Entity"
+          },
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/HealthFinding"
+          },
+          "type": "array"
+        },
+        "projection_mode": {
+          "enum": [
+            "local",
+            "public"
+          ],
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer"
+        },
+        "source_digest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "edges",
+        "entities",
+        "findings",
+        "projection_mode",
+        "schema_version",
+        "source_digest"
+      ],
+      "type": "object"
+    },
+    "Dossier": {
+      "additionalProperties": false,
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/Entity"
+        },
+        "incoming": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        },
+        "outgoing": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "entity",
+        "incoming",
+        "outgoing"
+      ],
+      "type": "object"
+    },
+    "Edge": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "target"
+      ],
+      "type": "object"
+    },
+    "Entity": {
+      "additionalProperties": false,
+      "properties": {
+        "entrypoint_label": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "owner_label": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "surface": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name"
+      ],
+      "type": "object"
+    },
+    "EntityPage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Entity"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "Envelope": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "data": {},
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Error"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "projection_mode": {
+          "enum": [
+            "local",
+            "public"
+          ],
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer"
+        },
+        "source_digest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "meta",
+        "ok",
+        "projection_mode",
+        "schema_version",
+        "source_digest"
+      ],
+      "type": "object"
+    },
+    "Error": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "ExportReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentDigests"
+        },
+        "edge_count": {
+          "type": "integer"
+        },
+        "entity_count": {
+          "type": "integer"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "finding_count": {
+          "type": "integer"
+        },
+        "output_changed": {
+          "type": "boolean"
+        },
+        "source_digest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "edge_count",
+        "entity_count",
+        "files",
+        "finding_count",
+        "output_changed",
+        "source_digest"
+      ],
+      "type": "object"
+    },
+    "GraphEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "target"
+      ],
+      "type": "object"
+    },
+    "GraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "aggregate": {
+          "type": "boolean"
+        },
+        "count": {
+          "type": "integer"
+        },
+        "group": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "GraphPage": {
+      "additionalProperties": false,
+      "properties": {
+        "depth": {
+          "type": "integer"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/GraphEdge"
+          },
+          "type": "array"
+        },
+        "group_by": {
+          "enum": [
+            "kind",
+            "surface"
+          ],
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "aggregate",
+            "region",
+            "neighborhood"
+          ],
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "type": "array"
+        },
+        "refinement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Refinement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "edges",
+        "mode",
+        "nodes"
+      ],
+      "type": "object"
+    },
+    "HealthFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string"
+        },
+        "remediation": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "remediation",
+        "severity"
+      ],
+      "type": "object"
+    },
+    "HealthReport": {
+      "additionalProperties": false,
+      "properties": {
+        "drift": {
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/HealthFinding"
+          },
+          "type": "array"
+        },
+        "ok": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "drift",
+        "findings",
+        "ok"
+      ],
+      "type": "object"
+    },
+    "InitReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "blocked": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dry_run": {
+          "type": "boolean"
+        },
+        "planned": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "present": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "template": {
+          "type": "string"
+        },
+        "written": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "blocked",
+        "dry_run",
+        "planned",
+        "present",
+        "template",
+        "written"
+      ],
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentDigests"
+        },
+        "edge_count": {
+          "type": "integer"
+        },
+        "entity_count": {
+          "type": "integer"
+        },
+        "finding_count": {
+          "type": "integer"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "product_version": {
+          "type": "string"
+        },
+        "projection_mode": {
+          "enum": [
+            "local",
+            "public"
+          ],
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer"
+        },
+        "source_digest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "edge_count",
+        "entity_count",
+        "finding_count",
+        "generator",
+        "product_version",
+        "projection_mode",
+        "schema_version",
+        "source_digest"
+      ],
+      "type": "object"
+    },
+    "Meta": {
+      "additionalProperties": false,
+      "properties": {
+        "next_cursor": {
+          "type": "string"
+        },
+        "notice": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "truncated"
+      ],
+      "type": "object"
+    },
+    "Refinement": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "SearchHit": {
+      "additionalProperties": false,
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/Entity"
+        },
+        "matched_terms": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "score": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "entity",
+        "matched_terms",
+        "score"
+      ],
+      "type": "object"
+    },
+    "SearchPage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/SearchHit"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    },
+    "ServeReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_count": {
+          "type": "integer"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entity_count",
+        "url"
+      ],
+      "type": "object"
+    },
+    "Status": {
+      "additionalProperties": false,
+      "properties": {
+        "api_schema_version": {
+          "type": "integer"
+        },
+        "edge_count": {
+          "type": "integer"
+        },
+        "entity_count": {
+          "type": "integer"
+        },
+        "finding_count": {
+          "type": "integer"
+        },
+        "product_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "api_schema_version",
+        "edge_count",
+        "entity_count",
+        "finding_count",
+        "product_version"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/nstranquist/nicos-catalog/schema/explorer-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/Envelope"
+    },
+    {
+      "$ref": "#/$defs/Manifest"
+    }
+  ],
+  "title": "Nicos Catalog Explorer v1"
+}

@@ -61,6 +61,9 @@ const (
 	CapabilityReconcile        Capability = "reconcile"
 	CapabilityPublicProjection Capability = "public-projection"
 	CapabilitySyntheticDemo    Capability = "synthetic-demo"
+	CapabilityExplorer         Capability = "explorer"
+	CapabilityExplorerExport   Capability = "explorer-static-export"
+	CapabilityReadOnlyMCP      Capability = "read-only-mcp"
 )
 
 // Capabilities returns the sorted capability set of this build. The returned
@@ -69,7 +72,8 @@ func Capabilities() []Capability {
 	out := []Capability{
 		CapabilityProviders, CapabilityLayout, CapabilityValidate, CapabilityReindex,
 		CapabilityBM25Search, CapabilityGraph, CapabilityDrift, CapabilityReconcile,
-		CapabilityPublicProjection, CapabilitySyntheticDemo,
+		CapabilityPublicProjection, CapabilitySyntheticDemo, CapabilityExplorer,
+		CapabilityExplorerExport, CapabilityReadOnlyMCP,
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 	return out

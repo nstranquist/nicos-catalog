@@ -8,15 +8,19 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	catalog "github.com/nstranquist/nicos-catalog"
 	"github.com/nstranquist/nicos-catalog/internal/hostcollate"
 )
 
 func main() {
-	os.Exit(run(context.Background(), os.Args[1:], os.Stdout, os.Stderr))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	os.Exit(run(ctx, os.Args[1:], os.Stdout, os.Stderr))
 }
 
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
@@ -41,6 +45,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	commandArgs := remaining[1:]
 	if command == "version" {
 		return runVersion(commandArgs, *jsonOutput, stdout, stderr)
+	}
+	if command == "init" {
+		return runInit(commandArgs, *root, *jsonOutput, stdout, stderr)
 	}
 	if command == "demo" {
 		return runDemo(ctx, commandArgs, *jsonOutput, stdout, stderr)
@@ -90,6 +97,12 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return runProject(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "collate":
 		return runCollate(ctx, *root, layout, commandArgs, *jsonOutput, stdout, stderr)
+	case "serve":
+		return runServe(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
+	case "export":
+		return runExportExplorer(ctx, engine, layout, commandArgs, *jsonOutput, stdout, stderr)
+	case "mcp":
+		return runMCP(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "unknown command %q\n\n", command)
 		printUsage(stderr)
@@ -215,7 +228,7 @@ func runProject(ctx context.Context, engine *catalog.Engine, args []string, json
 func newHostEngine(ctx context.Context, command, hostRoot string, layout catalog.Layout) (*catalog.Engine, error) {
 	providers := []catalog.Provider{catalog.FilesystemProvider{ProviderName: "host-filesystem", Strict: true}}
 	switch command {
-	case "validate", "reindex", "drift", "reconcile":
+	case "validate", "reindex", "drift", "reconcile", "serve", "export", "mcp":
 		records, err := collatedRecords(ctx, hostRoot, layout)
 		if err != nil {
 			return nil, err
@@ -303,8 +316,13 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	flags := flag.NewFlagSet("demo", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	query := flags.String("query", "ownership graph", "synthetic search query")
+	ui := flags.Bool("ui", false, "serve the synthetic corpus in Explorer")
+	open := flags.Bool("open", false, "open Explorer in the default browser after it is ready")
 	if err := flags.Parse(args); err != nil {
 		return 2
+	}
+	if *ui {
+		return runDemoUI(ctx, *open, jsonOutput, stdout, stderr)
 	}
 	root, err := os.MkdirTemp("", "nicos-catalog-demo-")
 	if err != nil {
@@ -405,6 +423,7 @@ Usage:
   %s [layout flags] <command> [command flags]
 
 Commands:
+  init        create a safe minimal or synthetic starter corpus
   validate    validate provider output and reference integrity
   reindex     build the deterministic local full-text index
   search      BM25 full-text search over the current index
@@ -413,7 +432,10 @@ Commands:
   reconcile   report drift or rebuild with --apply
   project     emit the closed, privacy-safe public DTO
   collate     GitHub-local collation report; --apply, --from-snapshot, --profile-repos, --enroll-manifest
-  demo        run an entirely synthetic end-to-end host
+  serve       run the read-only Explorer on a loopback address
+  export      write a deterministic static public Explorer bundle
+  mcp         run bounded read-only catalog tools over stdio
+  demo        run a synthetic host; --ui opens all Explorer surfaces
   version     print build identity; supports --expect %s
 
 Layout flags:

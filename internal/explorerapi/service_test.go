@@ -92,19 +92,19 @@ func TestProjectedBM25Search(t *testing.T) {
 	}
 }
 
-func TestDossierAndProgressiveGraph(t *testing.T) {
+func TestEntityDetailAndProgressiveGraph(t *testing.T) {
 	s := serviceFixture(t)
-	dossier, meta, err := s.Dossier("system.orchard", 1)
+	detail, meta, err := s.EntityDetail("system.orchard", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if dossier.Entity.ID != "system.orchard" || !meta.Truncated || len(dossier.Outgoing) != 1 {
-		t.Fatalf("dossier = %+v %+v", dossier, meta)
+	if detail.Entity.ID != "system.orchard" || !meta.Truncated || len(detail.Outgoing) != 1 {
+		t.Fatalf("page = %+v %+v", detail, meta)
 	}
-	if _, _, err := s.Dossier("BAD ID", 10); err == nil {
+	if _, _, err := s.EntityDetail("BAD ID", 10); err == nil {
 		t.Fatal("invalid id succeeded")
 	}
-	if _, _, err := s.Dossier("service.missing", 10); err == nil {
+	if _, _, err := s.EntityDetail("service.missing", 10); err == nil {
 		t.Fatal("missing id succeeded")
 	}
 

@@ -33,7 +33,7 @@ does not set a permissive CORS header.
 | Route | Job |
 | --- | --- |
 | `/` | Explain corpus shape and urgent health state. |
-| `/catalog` | Browse, search, filter, sort, and open a dossier. |
+| `/catalog` | Browse, search, filter, sort, and open a page. |
 | `/entity/:id` | Read one entity and its direct relationships. |
 | `/graph` | Move from aggregates to a bounded region or neighborhood. |
 | `/health` | Read redacted validation and drift findings. |
@@ -42,7 +42,7 @@ Press `/` to focus global search. Press `g` and a navigation key to change a
 view. The keys are `o`, `c`, `g`, and `h`.
 
 Explorer supports light, dark, and automatic themes. It honors reduced-motion,
-increased-contrast, and forced-colors browser settings. The dossier keeps
+increased-contrast, and forced-colors browser settings. The page keeps
 keyboard focus inside while open and returns focus to its opener when closed.
 
 Explorer stores one selected entity ID in session storage. It does not store

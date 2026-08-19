@@ -173,11 +173,11 @@ func (s *Server) call(name string, raw json.RawMessage) (toolResult, error) {
 		if err := decodeStrict(raw, &args); err != nil {
 			return toolResult{}, err
 		}
-		dossier, meta, err := s.service.Dossier(args.ID, 50)
+		detail, meta, err := s.service.EntityDetail(args.ID, 50)
 		if err != nil {
 			return toolResult{}, err
 		}
-		value = map[string]any{"data": dossier, "meta": meta}
+		value = map[string]any{"data": detail, "meta": meta}
 	case "catalog_graph":
 		var args struct {
 			Mode    explorercontract.GraphMode  `json:"mode,omitempty"`

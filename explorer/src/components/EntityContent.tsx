@@ -1,15 +1,15 @@
-import type { Dossier, Meta } from '../generated/contract'
+import type { EntityDetail, Meta } from '../generated/contract'
 import { EntityKind, EntityStatus, RelationshipList } from './EntityBits'
 
-export function DossierContent({ dossier, meta }: { dossier: Dossier; meta: Meta }) {
-  const { entity, incoming, outgoing } = dossier
+export function EntityContent({ detail, meta }: { detail: EntityDetail; meta: Meta }) {
+  const { entity, incoming, outgoing } = detail
   return (
-    <article className="dossier-content">
-      <header className="dossier-header">
-        <p className="eyebrow">Entity dossier</p>
+    <article className="entity-content">
+      <header className="entity-header">
+        <p className="eyebrow">Entity</p>
         <h2>{entity.name}</h2>
         <code>{entity.id}</code>
-        <div className="dossier-badges"><EntityKind value={entity.kind} /><EntityStatus value={entity.status} /></div>
+        <div className="entity-badges"><EntityKind value={entity.kind} /><EntityStatus value={entity.status} /></div>
       </header>
       <section aria-labelledby="facts-heading">
         <h3 id="facts-heading">Facts</h3>
@@ -27,7 +27,7 @@ export function DossierContent({ dossier, meta }: { dossier: Dossier; meta: Meta
           <h3 id="relationships-heading">Relationships</h3>
           <span>{meta.total ?? incoming.length + outgoing.length} total</span>
         </div>
-        {meta.truncated && <p className="notice-copy">This bounded dossier omits some relationships.</p>}
+        {meta.truncated && <p className="notice-copy">This bounded page omits some relationships.</p>}
         <h4>Outgoing</h4>
         <RelationshipList edges={outgoing} direction="outgoing" />
         <h4>Incoming</h4>

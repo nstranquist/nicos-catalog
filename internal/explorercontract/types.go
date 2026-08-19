@@ -94,7 +94,7 @@ type EntityPage struct {
 }
 
 // StaticCatalog keeps projected entities and edges together for on-demand
-// static dossier and region reads. The overview still loads aggregates only.
+// static page and region reads. The overview still loads aggregates only.
 type StaticCatalog struct {
 	Items []Entity `json:"items"`
 	Edges []Edge   `json:"edges"`
@@ -112,8 +112,8 @@ type SearchPage struct {
 	Items []SearchHit `json:"items"`
 }
 
-// Dossier is one entity plus its bounded direct relationships.
-type Dossier struct {
+// EntityDetail is one entity plus its bounded direct relationships.
+type EntityDetail struct {
 	Entity   Entity `json:"entity"`
 	Incoming []Edge `json:"incoming"`
 	Outgoing []Edge `json:"outgoing"`

@@ -40,12 +40,12 @@ func TestExplorerScaleProfilesStayBounded(t *testing.T) {
 				t.Fatalf("graph bounds = %d/%d %+v", len(graph.Nodes), len(graph.Edges), graphMeta)
 			}
 
-			dossier, dossierMeta, err := service.Dossier(dataset.Entities[size/2].ID, 1)
-			if err != nil {
-				t.Fatal(err)
+			detail, detailMeta, detailErr := service.EntityDetail(dataset.Entities[size/2].ID, 1)
+			if detailErr != nil {
+				t.Fatal(detailErr)
 			}
-			if dossier.Entity.ID == "" || len(dossier.Incoming)+len(dossier.Outgoing) > 1 || !dossierMeta.Truncated {
-				t.Fatalf("dossier bounds = %+v %+v", dossier, dossierMeta)
+			if detail.Entity.ID == "" || len(detail.Incoming)+len(detail.Outgoing) > 1 || !detailMeta.Truncated {
+				t.Fatalf("page bounds = %+v %+v", detail, detailMeta)
 			}
 		})
 	}

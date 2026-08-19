@@ -277,13 +277,13 @@ func (s *Service) score(query string) []explorercontract.SearchHit {
 	return hits
 }
 
-func (s *Service) Dossier(id string, edgeLimit int) (explorercontract.Dossier, explorercontract.Meta, error) {
+func (s *Service) EntityDetail(id string, edgeLimit int) (explorercontract.EntityDetail, explorercontract.Meta, error) {
 	if err := catalog.ValidateEntityID(id); err != nil {
-		return explorercontract.Dossier{}, explorercontract.Meta{}, usageError("invalid_entity_id", "The entity ID is invalid.")
+		return explorercontract.EntityDetail{}, explorercontract.Meta{}, usageError("invalid_entity_id", "The entity ID is invalid.")
 	}
 	entity, ok := s.byID[id]
 	if !ok {
-		return explorercontract.Dossier{}, explorercontract.Meta{}, missingError()
+		return explorercontract.EntityDetail{}, explorercontract.Meta{}, missingError()
 	}
 	if edgeLimit <= 0 {
 		edgeLimit = 200
@@ -301,7 +301,7 @@ func (s *Service) Dossier(id string, edgeLimit int) (explorercontract.Dossier, e
 			incoming = incoming[:edgeLimit-len(outgoing)]
 		}
 	}
-	return explorercontract.Dossier{Entity: entity, Incoming: incoming, Outgoing: outgoing}, explorercontract.Meta{Total: total, Truncated: truncated}, nil
+	return explorercontract.EntityDetail{Entity: entity, Incoming: incoming, Outgoing: outgoing}, explorercontract.Meta{Total: total, Truncated: truncated}, nil
 }
 
 type GraphOptions struct {

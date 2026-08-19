@@ -1,5 +1,5 @@
 import type {
-  Dossier,
+  EntityDetail,
   Edge,
   Entity,
   EntityPage,
@@ -52,7 +52,7 @@ export interface ExplorerSource {
   status(): Promise<Status>
   entities(query: CatalogQuery): Promise<Result<EntityPage>>
   search(query: CatalogQuery): Promise<Result<SearchPage>>
-  dossier(id: string): Promise<Result<Dossier>>
+  entityDetail(id: string): Promise<Result<EntityDetail>>
   graph(query: GraphQuery): Promise<Result<GraphPage>>
   health(severity?: HealthSeverity): Promise<Result<HealthReport>>
 }
@@ -108,7 +108,7 @@ class LiveSource implements ExplorerSource {
     return this.get('/api/v1/search', queryParams(query))
   }
 
-  dossier(id: string): Promise<Result<Dossier>> {
+  entityDetail(id: string): Promise<Result<EntityDetail>> {
     return this.get(`/api/v1/entities/${encodeURIComponent(id)}`)
   }
 
@@ -172,7 +172,7 @@ class StaticSource implements ExplorerSource {
     return { data: { items: hits }, meta: { truncated: hits.length < entities.length && hits.length > 0, total: hits.length } }
   }
 
-  async dossier(id: string): Promise<Result<Dossier>> {
+  async entityDetail(id: string): Promise<Result<EntityDetail>> {
     const catalog = await this.catalogAsset()
     const entity = catalog.items.find((item) => item.id === id)
     if (!entity) throw new ExplorerDataError('not_found', 'The requested entity was not found.', 404)

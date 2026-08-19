@@ -130,12 +130,12 @@ func (h *handler) entity(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, r, usageError("invalid_entity_id", "The entity ID is invalid."))
 		return
 	}
-	dossier, meta, err := h.service.Dossier(id, 200)
+	detail, meta, err := h.service.EntityDetail(id, 200)
 	if err != nil {
 		h.writeError(w, r, err)
 		return
 	}
-	h.writeData(w, r, dossier, meta)
+	h.writeData(w, r, detail, meta)
 }
 
 func (h *handler) search(w http.ResponseWriter, r *http.Request) {

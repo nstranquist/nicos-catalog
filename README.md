@@ -111,7 +111,7 @@ Start the read-only stdio MCP server after you build the index:
 nicos-catalog mcp --stdio
 ```
 
-The server exposes bounded search, dossier, graph, and health tools. It has no
+The server exposes bounded search, page, graph, and health tools. It has no
 write tool and sends no telemetry. See [the MCP guide](docs/mcp.md).
 
 GitHub-local collation is a host command, off until `<config>/settings.yaml`

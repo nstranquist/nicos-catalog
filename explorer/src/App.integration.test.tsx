@@ -26,7 +26,7 @@ describe('Explorer application', () => {
     await router.navigate({ to: '/', search: {} })
   })
 
-  it('opens the overview, navigates the catalog, and closes a keyboard-safe dossier', async () => {
+  it('opens the overview, navigates the catalog, and closes a keyboard-safe page', async () => {
     const user = userEvent.setup()
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const view = render(<QueryClientProvider client={queryClient}><SourceProvider><RouterProvider router={router} /></SourceProvider></QueryClientProvider>)
@@ -36,16 +36,16 @@ describe('Explorer application', () => {
 
     await user.click(screen.getByRole('link', { name: /^catalog/i }))
     expect(await screen.findByRole('heading', { name: /find the exact thing/i })).toBeVisible()
-    const openDossier = await screen.findByRole('button', { name: /open dossier for seed api/i })
-    await user.click(openDossier)
+    const openPage = await screen.findByRole('button', { name: /open page for seed api/i })
+    await user.click(openPage)
     const dialog = await screen.findByRole('dialog', { name: /seed-api/i })
     expect(dialog).toBeVisible()
-    expect(screen.getByRole('button', { name: /close dossier/i })).toHaveFocus()
+    expect(screen.getByRole('button', { name: /close page/i })).toHaveFocus()
     await expectAccessible(view.container)
 
     fireEvent.keyDown(dialog, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    await waitFor(() => expect(screen.getByRole('button', { name: /open dossier for seed api/i })).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('button', { name: /open page for seed api/i })).toHaveFocus())
     expect(sessionStorage.getItem('nicos-catalog:explorer:selected')).toBeNull()
   })
 })

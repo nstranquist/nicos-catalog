@@ -72,41 +72,41 @@ steps:
   - verb: viewport
     width: 1440
     height: 900
-    label: desktop dossier layout
+    label: desktop entity layout
   - verb: wait
     selector: '[data-test="entity-row"]'
     timeout: 15s
   - verb: eval
-    label: focus the Seed API dossier control
-    js: "document.querySelector('button[aria-label=\"Open dossier for Seed API\"]')?.focus(); document.activeElement?.getAttribute('aria-label') || 'missing'"
-    assert: { contains: "Open dossier for Seed API" }
+    label: focus the Seed API page control
+    js: "document.querySelector('button[aria-label=\"Open page for Seed API\"]')?.focus(); document.activeElement?.getAttribute('aria-label') || 'missing'"
+    assert: { contains: "Open page for Seed API" }
   - verb: press
     key: Enter
-    label: open the Seed API dossier with the keyboard
+    label: open the Seed API page with the keyboard
   - verb: assert_visible
-    selector: '[data-test="dossier"]'
+    selector: '[data-test="entity-page"]'
   - verb: eval
-    label: dossier receives focus
+    label: page receives focus
     js: "document.activeElement?.getAttribute('aria-label') || 'missing'"
-    assert: { contains: "Close dossier" }
+    assert: { contains: "Close page" }
   - verb: press
     key: Tab
-    label: move within the dossier focus trap
+    label: move within the page focus trap
   - verb: eval
-    label: focus stays inside the dossier
-    js: "document.activeElement?.closest('[data-test=dossier]') ? 'inside' : 'outside'"
+    label: focus stays inside the page
+    js: "document.activeElement?.closest('[data-test=entity-page]') ? 'inside' : 'outside'"
     assert: { contains: "inside" }
   - verb: press
     key: Escape
-    label: close the dossier with the keyboard
+    label: close the page with the keyboard
   - verb: eval
-    label: dossier is closed
-    js: "document.querySelector('[data-test=dossier]') === null ? 'closed' : 'open'"
+    label: page is closed
+    js: "document.querySelector('[data-test=entity-page]') === null ? 'closed' : 'open'"
     assert: { contains: "closed" }
   - verb: eval
-    label: dossier returns focus to its opener
+    label: page returns focus to its opener
     js: "document.activeElement?.getAttribute('aria-label') || 'missing'"
-    assert: { contains: "Open dossier for Seed API" }
+    assert: { contains: "Open page for Seed API" }
   - verb: navigate
     url: ${base}/graph
     label: bounded graph
@@ -140,7 +140,7 @@ steps:
     assert: { contains: "0" }
   - verb: navigate
     url: ${base}/entity/service.seed-api
-    label: direct dossier route
+    label: direct entity route
   - verb: wait
     selector: '[data-test="entity"]'
     timeout: 15s
@@ -148,9 +148,9 @@ steps:
     selector: '[data-test="entity"]'
     assert: { contains: "Seed API" }
   - verb: console
-    label: direct dossier reload has no JavaScript errors
+    label: direct entity reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
   - verb: eval
-    label: direct dossier has no failed or third-party resource request
+    label: direct entity has no failed or third-party resource request
     js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
     assert: { contains: "0" }

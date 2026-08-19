@@ -38,7 +38,7 @@ Explorer has five routes and seven user jobs:
 | Route | Job |
 | --- | --- |
 | `/` | Explain corpus shape and urgent health state. |
-| `/catalog` | Browse, search, filter, sort, and open a dossier. |
+| `/catalog` | Browse, search, filter, sort, and open a page. |
 | `/entity/:id` | Read one entity and its incoming and outgoing relationships. |
 | `/graph` | Move from aggregates to a region or bounded neighborhood. |
 | `/health` | Read redacted validation and drift findings. |
@@ -54,7 +54,7 @@ browser session. It does not store query history or entity bodies.
 - Press `g`, then `c`, to open Catalog.
 - Press `g`, then `g`, to open Graph.
 - Press `g`, then `h`, to open Health.
-- Press `Escape` to close a dossier drawer.
+- Press `Escape` to close the page drawer.
 
 The drawer traps `Tab` focus and restores focus when it closes. Each graph has
 an equivalent node and relationship table.

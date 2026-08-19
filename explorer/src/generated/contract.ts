@@ -28,7 +28,7 @@ export interface EntityPage { items: Entity[] }
 export interface StaticCatalog { items: Entity[]; edges: Edge[] }
 export interface SearchHit { entity: Entity; score: number; matched_terms: string[] }
 export interface SearchPage { items: SearchHit[] }
-export interface Dossier { entity: Entity; incoming: Edge[]; outgoing: Edge[] }
+export interface EntityDetail { entity: Entity; incoming: Edge[]; outgoing: Edge[] }
 export interface GraphNode { id: string; name: string; kind?: string; status?: string; group?: string; count?: number; aggregate?: boolean }
 export interface GraphEdge { source: string; target: string; kind: string; count?: number }
 export interface Refinement { code: string; summary: string }

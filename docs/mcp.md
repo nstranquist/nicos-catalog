@@ -26,7 +26,7 @@ output.
 | Tool | Result |
 | --- | --- |
 | `catalog_search` | Ranked projected entities. |
-| `catalog_get` | One entity dossier and direct relationships. |
+| `catalog_get` | One entity page and direct relationships. |
 | `catalog_graph` | An aggregate, region, or neighborhood graph. |
 | `catalog_health` | Redacted validation and drift findings. |
 

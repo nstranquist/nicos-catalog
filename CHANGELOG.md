@@ -5,13 +5,13 @@
 ### Added
 
 - **Nicos Catalog Explorer**, an embedded read-only web application with
-  Overview, Catalog, Search, Dossier, Relationships, Graph, and Health views.
+  Overview, Catalog, Search, EntityDetail, Relationships, Graph, and Health views.
 - `init` for a safe minimal or sample starter corpus.
 - `serve` for a Host-locked loopback Explorer over a versioned HTTP contract.
 - `demo --ui` for a temporary synthetic Explorer with no authored-corpus write.
 - `export explorer` for a deterministic static site from the closed public
   projection. Each data file has a manifest-bound SHA-256 digest.
-- `mcp --stdio` for bounded read-only search, dossier, graph, and health tools.
+- `mcp --stdio` for bounded read-only search, page, graph, and health tools.
 - Generated JSON Schema and TypeScript contracts, route-level code splitting,
   embedded-asset byte checks, accessibility tests, and bundle-size budgets.
 - **`nicos-catalog collate`**, an opt-in local GitHub collation report. It has
@@ -31,7 +31,7 @@
 
 - Explorer now keeps the browser `fetch` receiver bound. Chrome previously
   rejected live catalog reads with an illegal-invocation error.
-- Closing a restored dossier now clears its stored selection. The prior effect
+- Closing a restored page now clears its stored selection. The prior effect
   reopened the drawer immediately after an Escape-key close.
 - Collation now recognizes linked worktrees, submodules, bare repositories,
   `.git` symlinks, Git config includes, and `url.insteadOf` rewrites.

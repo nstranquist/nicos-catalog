@@ -74,7 +74,7 @@ describe('live Explorer source', () => {
     expect((await source.status()).product_version).toBe('v0.3.0')
     expect((await source.entities({ q: 'api', kind: 'service', status: 'active', surface: 'runtime', tag: 'platform', sort: 'id', direction: 'desc', cursor: 'next', limit: 5 })).data.items).toHaveLength(1)
     expect((await source.search({ q: 'api', limit: 4 })).data.items[0].score).toBe(5)
-    expect((await source.dossier('service.api')).meta.total).toBe(2)
+    expect((await source.entityDetail('service.api')).meta.total).toBe(2)
     expect((await source.graph({ mode: 'region', groupBy: 'kind', group: 'service', id: 'service.api', depth: 2 })).data.mode).toBe('aggregate')
     expect((await source.health('warning')).data.drift).toBe('changed')
     expect(requests).toContain('/api/v1/entities?q=api&kind=service&status=active&surface=runtime&tag=platform&sort=id&direction=desc&cursor=next&limit=5')
@@ -105,7 +105,7 @@ describe('static Explorer source', () => {
     expect(fetcher).not.toHaveBeenCalledWith('/api/v1/status', expect.anything())
   })
 
-  it('verifies assets and implements catalog, search, dossier, graph, and health reads', async () => {
+  it('verifies assets and implements catalog, search, page, graph, and health reads', async () => {
     const fixture = staticFixture()
     const fetcher = staticFetcher(fixture)
     const source = await discoverSource(fetcher)
@@ -120,8 +120,8 @@ describe('static Explorer source', () => {
     expect((await source.entities({ kind: 'service', tag: 'platform' })).data.items.map((item) => item.id)).toEqual(['service.api'])
 
     expect((await source.search({ q: 'seed api', status: 'active', limit: 1 })).data.items[0].entity.id).toBe('service.api')
-    expect((await source.dossier('service.api')).data.incoming).toHaveLength(2)
-    await expect(source.dossier('missing')).rejects.toMatchObject({ code: 'not_found' })
+    expect((await source.entityDetail('service.api')).data.incoming).toHaveLength(2)
+    await expect(source.entityDetail('missing')).rejects.toMatchObject({ code: 'not_found' })
 
     expect((await source.graph({})).data).toEqual(aggregate)
     expect((await source.graph({ mode: 'aggregate', groupBy: 'surface' })).data.group_by).toBe('surface')
@@ -141,16 +141,16 @@ describe('static Explorer source', () => {
     await expect(source.entities({ cursor: 'static-zzzzzzzzzzzzzzzzzzzzzz' })).rejects.toMatchObject({ code: 'invalid_cursor' })
 
     const missing = await discoverSource(staticFetcher(fixture, { missing: 'entities' }))
-    await expect(missing.dossier('service.api')).rejects.toMatchObject({ code: 'asset_missing' })
+    await expect(missing.entityDetail('service.api')).rejects.toMatchObject({ code: 'asset_missing' })
 
     const changed = await discoverSource(staticFetcher(fixture, { changed: 'entities' }))
-    await expect(changed.dossier('service.api')).rejects.toMatchObject({ code: 'asset_digest_mismatch' })
+    await expect(changed.entityDetail('service.api')).rejects.toMatchObject({ code: 'asset_digest_mismatch' })
 
     const badEnvelope = staticFixture()
     badEnvelope.assets.entities = bytes(JSON.stringify({ hello: 'world' }))
     badEnvelope.manifest.content.entities = sha(badEnvelope.assets.entities)
     const incompatible = await discoverSource(staticFetcher(badEnvelope))
-    await expect(incompatible.dossier('service.api')).rejects.toMatchObject({ code: 'contract_mismatch' })
+    await expect(incompatible.entityDetail('service.api')).rejects.toMatchObject({ code: 'contract_mismatch' })
   })
 
   it('reports discovery failure when neither transport has a compatible root', async () => {

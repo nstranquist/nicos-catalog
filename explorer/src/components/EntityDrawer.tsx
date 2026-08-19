@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, type KeyboardEvent } from 'react'
 import { useSource } from '../lib/source-context'
 import { writeSelection } from '../selection-store'
-import { DossierContent } from './DossierContent'
+import { EntityContent } from './EntityContent'
 import { QueryState } from './StatePanel'
 
-export function DossierDrawer({ entityID, onClose }: { entityID: string; onClose(): void }) {
+export function EntityDrawer({ entityID, onClose }: { entityID: string; onClose(): void }) {
   const source = useSource()
   const panel = useRef<HTMLDivElement>(null)
   const close = useRef<HTMLButtonElement>(null)
-  const query = useQuery({ queryKey: ['dossier', source.sourceDigest, entityID], queryFn: () => source.dossier(entityID) })
+  const query = useQuery({ queryKey: ['entity', source.sourceDigest, entityID], queryFn: () => source.entityDetail(entityID) })
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
@@ -17,8 +17,8 @@ export function DossierDrawer({ entityID, onClose }: { entityID: string; onClose
     close.current?.focus()
     return () => {
       window.setTimeout(() => {
-        if (document.querySelector('[data-test="dossier"]')) return
-        const opener = [...document.querySelectorAll<HTMLElement>('[data-test="open-dossier"]')]
+        if (document.querySelector('[data-test="entity-page"]')) return
+        const opener = [...document.querySelectorAll<HTMLElement>('[data-test="open-entity"]')]
           .find((element) => element.dataset.entityId === entityID)
         const current = opener ?? (previous !== document.body && previous?.isConnected ? previous : undefined)
         current?.focus()
@@ -43,9 +43,9 @@ export function DossierDrawer({ entityID, onClose }: { entityID: string; onClose
 
   return (
     <div className="drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <div className="dossier-drawer" data-test="dossier" role="dialog" aria-modal="true" aria-label={`Entity dossier: ${entityID}`} ref={panel} onKeyDown={keydown}>
-        <button className="drawer-close" type="button" ref={close} onClick={onClose} aria-label="Close dossier">Close <span aria-hidden="true">×</span></button>
-        <QueryState query={query}>{(result) => <DossierContent dossier={result.data} meta={result.meta} />}</QueryState>
+      <div className="entity-drawer" data-test="entity-page" role="dialog" aria-modal="true" aria-label={`Entity: ${entityID}`} ref={panel} onKeyDown={keydown}>
+        <button className="drawer-close" type="button" ref={close} onClick={onClose} aria-label="Close page">Close <span aria-hidden="true">×</span></button>
+        <QueryState query={query}>{(result) => <EntityContent detail={result.data} meta={result.meta} />}</QueryState>
       </div>
     </div>
   )

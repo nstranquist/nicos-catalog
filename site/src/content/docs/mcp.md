@@ -1,6 +1,6 @@
 ---
 title: Read-only MCP
-description: Connect an agent to bounded search, dossier, graph, and health tools.
+description: Connect an agent to bounded search, page, graph, and health tools.
 ---
 
 If the index is stale, rebuild it:

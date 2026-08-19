@@ -2,7 +2,7 @@ import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Entity, SearchHit } from '../generated/contract'
-import { DossierDrawer } from '../components/DossierDrawer'
+import { EntityDrawer } from '../components/EntityDrawer'
 import { EntityKind, EntityStatus } from '../components/EntityBits'
 import { QueryState, StatePanel } from '../components/StatePanel'
 import { useSource } from '../lib/source-context'
@@ -91,7 +91,7 @@ export default function Catalog() {
               <thead><tr><th scope="col">Entity</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col">Surface</th><th scope="col">Match</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead>
               <tbody>{result.items.map((entity) => {
                 const hit = result.hits?.get(entity.id)
-                return <tr key={entity.id} data-test="entity-row"><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" data-test="open-dossier" data-entity-id={entity.id} onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open dossier for ${entity.name}`}>Open</button></td></tr>
+                return <tr key={entity.id} data-test="entity-row"><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" data-test="open-entity" data-entity-id={entity.id} onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open page for ${entity.name}`}>Open</button></td></tr>
               })}</tbody>
             </table>
           </div>
@@ -99,7 +99,7 @@ export default function Catalog() {
           {result.truncated && !result.nextCursor && <p className="notice-copy">Search results are bounded. Add a more specific term or filter.</p>}
         </section>
       )}</QueryState>
-      {search.selected && <DossierDrawer entityID={search.selected} onClose={closeDrawer} />}
+      {search.selected && <EntityDrawer entityID={search.selected} onClose={closeDrawer} />}
     </main>
   )
 }

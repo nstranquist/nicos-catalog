@@ -69,32 +69,6 @@
       ],
       "type": "object"
     },
-    "Dossier": {
-      "additionalProperties": false,
-      "properties": {
-        "entity": {
-          "$ref": "#/$defs/Entity"
-        },
-        "incoming": {
-          "items": {
-            "$ref": "#/$defs/Edge"
-          },
-          "type": "array"
-        },
-        "outgoing": {
-          "items": {
-            "$ref": "#/$defs/Edge"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "entity",
-        "incoming",
-        "outgoing"
-      ],
-      "type": "object"
-    },
     "Edge": {
       "additionalProperties": false,
       "properties": {
@@ -156,6 +130,32 @@
         "id",
         "kind",
         "name"
+      ],
+      "type": "object"
+    },
+    "EntityDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/Entity"
+        },
+        "incoming": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        },
+        "outgoing": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "entity",
+        "incoming",
+        "outgoing"
       ],
       "type": "object"
     },

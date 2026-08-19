@@ -99,11 +99,11 @@ button:hover { border-color: var(--accent); }
 .quiet { color: var(--muted); }
 .notice-copy { border-left: .2rem solid var(--warn); padding-left: .7rem; color: var(--muted); }
 
-.dossier-content section { padding: 1.5rem 0; border-top: 1px solid var(--line); }
-.dossier-header { padding: 1rem 0 1.7rem; }
-.dossier-header h2 { margin: .2rem 0; font: clamp(2rem, 5vw, 3.7rem)/1 Georgia, serif; }
-.dossier-header > code { color: var(--muted); }
-.dossier-badges { display: flex; gap: .6rem; margin-top: 1rem; }
+.entity-content section { padding: 1.5rem 0; border-top: 1px solid var(--line); }
+.entity-header { padding: 1rem 0 1.7rem; }
+.entity-header h2 { margin: .2rem 0; font: clamp(2rem, 5vw, 3.7rem)/1 Georgia, serif; }
+.entity-header > code { color: var(--muted); }
+.entity-badges { display: flex; gap: .6rem; margin-top: 1rem; }
 .summary-copy { font: 1.08rem/1.65 Georgia, serif; }
 .facts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .facts-grid div { padding: .8rem 0; border-top: 1px solid var(--line); }
@@ -113,7 +113,7 @@ button:hover { border-color: var(--accent); }
 .relationship-list li { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .7rem; align-items: baseline; padding: .65rem 0; border-bottom: 1px solid var(--line); }
 .relationship-list span, .relationship-list code { color: var(--muted); font-size: .72rem; }
 .drawer-layer { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 38%); display: flex; justify-content: flex-end; }
-.dossier-drawer { width: min(44rem, 94vw); height: 100%; overflow: auto; padding: 1.4rem clamp(1.2rem, 4vw, 3rem); background: var(--paper-raised); box-shadow: var(--shadow); }
+.entity-drawer { width: min(44rem, 94vw); height: 100%; overflow: auto; padding: 1.4rem clamp(1.2rem, 4vw, 3rem); background: var(--paper-raised); box-shadow: var(--shadow); }
 .drawer-close { position: sticky; z-index: 2; top: 0; float: right; background: var(--paper-raised); }
 .status-dot { display: inline-flex; align-items: center; gap: .35rem; color: var(--muted); font-size: .75rem; }
 .status-dot > span { width: .5rem; height: .5rem; border-radius: 50%; background: var(--line-strong); }

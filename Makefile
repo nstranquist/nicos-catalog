@@ -6,6 +6,8 @@ COVER_FLOOR_ROOT ?= 90.0
 COVER_FLOOR_CMD  ?= 80.0
 COVER_FLOOR_HOST ?= 85.0
 COVER_FLOOR_EXPLORER ?= 85.0
+FUZZ_TIME ?= 30s
+FUZZ_PARALLEL ?= 2
 
 EXPLORER_GO_PACKAGES := \
 	./internal/explorerapi \
@@ -56,11 +58,12 @@ cover:
 		   else {printf "%s coverage %.1f%% (floor %.1f%%)\n",n,$$3,f}}'; \
 	done
 
-# A short smoke over every fuzz target. The nightly workflow runs these longer.
+# A short smoke over every fuzz target. Keep worker concurrency low so this
+# gate remains stable on shared developer hosts and small CI runners.
 fuzz:
 	@for target in $$(go test -list 'Fuzz.*' ./... | grep '^Fuzz'); do \
 	  echo "fuzzing $$target"; \
-	  go test -run '^$$' -fuzz "^$$target$$" -fuzztime=30s . || exit 1; \
+	  go test -run '^$$' -fuzz "^$$target$$" -fuzztime=$(FUZZ_TIME) -parallel=$(FUZZ_PARALLEL) . || exit 1; \
 	done
 
 # Benchmarks are a crash and allocation smoke. The separate perf target applies

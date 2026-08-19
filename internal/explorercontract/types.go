@@ -93,6 +93,13 @@ type EntityPage struct {
 	Items []Entity `json:"items"`
 }
 
+// StaticCatalog keeps projected entities and edges together for on-demand
+// static dossier and region reads. The overview still loads aggregates only.
+type StaticCatalog struct {
+	Items []Entity `json:"items"`
+	Edges []Edge   `json:"edges"`
+}
+
 // SearchHit is one scored result over projected fields only.
 type SearchHit struct {
 	Entity       Entity   `json:"entity"`

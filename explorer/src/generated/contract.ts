@@ -25,6 +25,7 @@ export interface Entity {
 export interface Edge { source: string; target: string; kind: string }
 export interface Status { product_version: string; api_schema_version: number; entity_count: number; edge_count: number; finding_count: number }
 export interface EntityPage { items: Entity[] }
+export interface StaticCatalog { items: Entity[]; edges: Edge[] }
 export interface SearchHit { entity: Entity; score: number; matched_terms: string[] }
 export interface SearchPage { items: SearchHit[] }
 export interface Dossier { entity: Entity; incoming: Edge[]; outgoing: Edge[] }

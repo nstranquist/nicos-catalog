@@ -2,3 +2,7 @@
 bin/
 coverage.out
 cover-*.out
+explorer/node_modules/
+explorer/coverage/
+explorer/.vite/
+explorer/tsconfig.tsbuildinfo

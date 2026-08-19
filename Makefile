@@ -1,4 +1,4 @@
-.PHONY: verify demo install release-check cover fuzz bench docs-site repro verify-explorer-contract
+.PHONY: verify demo install release-check cover fuzz bench docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
 
 # Coverage floors ratchet upward only. Raising them is a normal change; lowering
 # them is a decision that should be argued for in review.
@@ -24,7 +24,7 @@ VERSION := $(shell cat VERSION)
 # -buildvcs=false keeps VCS stamps out of the binary identity under test.
 REPRO_FLAGS := -trimpath -buildvcs=false -ldflags=-buildid=
 
-verify: cover
+verify: cover explorer-check verify-explorer-embed
 	@test -z "$$(gofmt -l $$(find . -name '*.go' -not -path './.git/*'))" || (gofmt -l $$(find . -name '*.go' -not -path './.git/*'); exit 1)
 	go test ./...
 	go test -race ./...
@@ -76,6 +76,15 @@ docs-site:
 
 verify-explorer-contract:
 	go run ./cmd/explorer-contract-gen --check
+
+explorer-install:
+	corepack pnpm@11.13.0 --dir explorer install --frozen-lockfile
+
+explorer-check: explorer-install
+	corepack pnpm@11.13.0 --dir explorer check
+
+verify-explorer-embed: explorer-install
+	node explorer/scripts/verify-embed.mjs
 
 install:
 	go install ./cmd/nicos-catalog

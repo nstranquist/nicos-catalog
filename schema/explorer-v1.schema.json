@@ -617,6 +617,28 @@
       ],
       "type": "object"
     },
+    "StaticCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/Edge"
+          },
+          "type": "array"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/Entity"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "edges",
+        "items"
+      ],
+      "type": "object"
+    },
     "Status": {
       "additionalProperties": false,
       "properties": {

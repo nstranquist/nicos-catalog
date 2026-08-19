@@ -1,9 +1,13 @@
 package explorerweb
 
 import (
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	explorerassets "github.com/nstranquist/nicos-catalog/explorer"
 )
 
 func TestHandlerRoutesAndTraversal(t *testing.T) {
@@ -24,7 +28,21 @@ func TestHandlerRoutesAndTraversal(t *testing.T) {
 			t.Fatalf("%s returned %d", path, res.Code)
 		}
 	}
-	asset := httptest.NewRequest(http.MethodGet, "/assets/app-00000000.js", nil)
+	entries, err := fs.ReadDir(explorerassets.FS(), "assets")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assetName := ""
+	for _, entry := range entries {
+		if strings.HasSuffix(entry.Name(), ".js") {
+			assetName = entry.Name()
+			break
+		}
+	}
+	if assetName == "" {
+		t.Fatal("embedded Explorer has no JavaScript asset")
+	}
+	asset := httptest.NewRequest(http.MethodGet, "/assets/"+assetName, nil)
 	assetRes := httptest.NewRecorder()
 	h.ServeHTTP(assetRes, asset)
 	if assetRes.Code != http.StatusOK || assetRes.Header().Get("Cache-Control") == "" {

@@ -127,6 +127,19 @@ jobs:
           cache: true
       - run: make cover
 
+  explorer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24.19.0"
+          cache: pnpm
+          cache-dependency-path: explorer/pnpm-lock.yaml
+      - run: corepack enable
+      - run: make explorer-check
+      - run: make verify-explorer-embed
+
   # The README is executable: every command it advertises runs here, on all
   # three platforms, so the documentation cannot drift away from the behavior.
   demo:

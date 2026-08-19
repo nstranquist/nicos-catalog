@@ -95,7 +95,7 @@ func build(ctx context.Context, root string, service *explorerapi.Service, produ
 		return explorercontract.ExportReceipt{}, err
 	}
 	dataset := service.Dataset()
-	entities := explorercontract.EntityPage{Items: append([]explorercontract.Entity(nil), dataset.Entities...)}
+	entities := explorercontract.StaticCatalog{Items: append([]explorercontract.Entity(nil), dataset.Entities...), Edges: append([]explorercontract.Edge(nil), dataset.Edges...)}
 	graph, graphMeta, err := service.Graph(explorerapi.GraphOptions{Mode: explorercontract.GraphAggregate})
 	if err != nil {
 		return explorercontract.ExportReceipt{}, err
@@ -113,7 +113,7 @@ func build(ctx context.Context, root string, service *explorerapi.Service, produ
 		"health":   {value: health, meta: healthMeta},
 		// Static search starts from the same closed entity bytes. The browser
 		// builds its small local index; private source text never enters this file.
-		"search": {value: entities, meta: explorercontract.Meta{Total: len(dataset.Entities), Truncated: false}},
+		"search": {value: explorercontract.EntityPage{Items: append([]explorercontract.Entity(nil), dataset.Entities...)}, meta: explorercontract.Meta{Total: len(dataset.Entities), Truncated: false}},
 	}
 	digests := explorercontract.ContentDigests{}
 	for _, name := range []string{"entities", "graph", "health", "search"} {

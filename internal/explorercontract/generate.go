@@ -16,7 +16,7 @@ import (
 var contractTypes = []reflect.Type{
 	reflect.TypeOf(Meta{}), reflect.TypeOf(Error{}), reflect.TypeOf(Envelope{}),
 	reflect.TypeOf(Entity{}), reflect.TypeOf(Edge{}), reflect.TypeOf(Dataset{}),
-	reflect.TypeOf(Status{}), reflect.TypeOf(EntityPage{}), reflect.TypeOf(SearchHit{}),
+	reflect.TypeOf(Status{}), reflect.TypeOf(EntityPage{}), reflect.TypeOf(StaticCatalog{}), reflect.TypeOf(SearchHit{}),
 	reflect.TypeOf(SearchPage{}), reflect.TypeOf(Dossier{}), reflect.TypeOf(GraphNode{}),
 	reflect.TypeOf(GraphEdge{}), reflect.TypeOf(Refinement{}), reflect.TypeOf(GraphPage{}),
 	reflect.TypeOf(HealthFinding{}), reflect.TypeOf(HealthReport{}),
@@ -188,6 +188,7 @@ export interface Entity {
 export interface Edge { source: string; target: string; kind: string }
 export interface Status { product_version: string; api_schema_version: number; entity_count: number; edge_count: number; finding_count: number }
 export interface EntityPage { items: Entity[] }
+export interface StaticCatalog { items: Entity[]; edges: Edge[] }
 export interface SearchHit { entity: Entity; score: number; matched_terms: string[] }
 export interface SearchPage { items: SearchHit[] }
 export interface Dossier { entity: Entity; incoming: Edge[]; outgoing: Edge[] }

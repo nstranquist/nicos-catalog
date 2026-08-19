@@ -1,0 +1,39 @@
+{
+  "name": "@nicos-catalog/explorer",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "check": "tsc -b --pretty false && vitest run --coverage && pnpm run build && node scripts/verify-bundle.mjs dist",
+    "dev": "vite --host 127.0.0.1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:bundle": "node scripts/verify-bundle.mjs dist"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.101.2",
+    "@tanstack/react-router": "1.170.17",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.5",
+    "@types/node": "22.19.20",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "@vitest/coverage-v8": "4.1.11",
+    "axe-core": "4.13.0",
+    "jsdom": "30.0.1",
+    "typescript": "5.9.3",
+    "vite": "8.1.4",
+    "vitest": "4.1.11"
+  }
+}

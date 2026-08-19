@@ -135,7 +135,7 @@ func run(options Options, filesys fileOps) (explorercontract.InitReceipt, error)
 }
 
 func safeTarget(root, rel string) (string, error) {
-	if filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+	if filepath.IsAbs(rel) || strings.HasPrefix(rel, "/") || strings.HasPrefix(rel, `\`) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || strings.HasPrefix(rel, "../") {
 		return "", fmt.Errorf("unsafe init path")
 	}
 	target := filepath.Join(root, rel)

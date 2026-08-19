@@ -1,6 +1,7 @@
 package hostcollate
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -98,7 +99,7 @@ func DecodeSettings(payload []byte) (Settings, error) {
 		return Settings{}, fmt.Errorf("decode settings: %w", err)
 	}
 	var extra any
-	if err := decoder.Decode(&extra); err != io.EOF {
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
 		if err == nil {
 			return Settings{}, fmt.Errorf("decode settings: multiple YAML documents are not allowed")
 		}
@@ -194,7 +195,7 @@ func expandPath(raw, home, hostRoot string) string {
 		}
 		return filepath.Clean(filepath.Join(home, raw[2:]))
 	}
-	if filepath.IsAbs(raw) {
+	if filepath.IsAbs(raw) || strings.HasPrefix(raw, "/") {
 		return filepath.Clean(raw)
 	}
 	if strings.TrimSpace(hostRoot) == "" {

@@ -71,7 +71,7 @@ func RunServer(ctx context.Context, config ServerConfig) error {
 	if err != nil {
 		return err
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 	hosts, err := AllowedHostsForListener(listener.Addr().String())
 	if err != nil {
 		return err

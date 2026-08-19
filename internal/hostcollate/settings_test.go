@@ -67,7 +67,7 @@ github:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(roots) != 2 || roots[0] != "/Users/nico/dev" || roots[1] != "/abs/tools" {
+	if len(roots) != 2 || filepath.ToSlash(roots[0]) != "/Users/nico/dev" || filepath.ToSlash(roots[1]) != "/abs/tools" {
 		t.Fatalf("roots = %#v", roots)
 	}
 }

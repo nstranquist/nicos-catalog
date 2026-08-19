@@ -21,6 +21,21 @@ func projectionIndex() catalog.Index {
 	}
 }
 
+func TestLocalEntrypointLabelUsesPortableBase(t *testing.T) {
+	index := projectionIndex()
+	index.Entities[1].Entrypoint = `C:\Users\example\dev\seed\main.go`
+	local, err := Compile(context.Background(), index, explorercontract.ProjectionLocal, catalog.ProjectionPolicy{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := local.Entities[0].EntrypointLabel; got != "main.go" {
+		t.Fatalf("windows entrypoint label = %q", got)
+	}
+	if strings.Contains(mustJSON(t, local), `C:`) || strings.Contains(mustJSON(t, local), `\Users\`) {
+		t.Fatal("windows path leaked into projection")
+	}
+}
+
 func TestCompileLocalAndPublicAreClosed(t *testing.T) {
 	index := projectionIndex()
 	local, err := Compile(context.Background(), index, explorercontract.ProjectionLocal, catalog.ProjectionPolicy{})

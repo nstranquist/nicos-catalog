@@ -112,7 +112,7 @@ func parseGitConfigFile(path string) (gitConfig, error) {
 	if err != nil {
 		return gitConfig{}, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	var parsed gitConfig
 	var section, subsection string
 	scanner := bufio.NewScanner(file)
@@ -240,7 +240,7 @@ func expandGitPath(raw, configDir, home string) string {
 	if strings.HasPrefix(raw, "~/") && strings.TrimSpace(home) != "" {
 		return filepath.Clean(filepath.Join(home, raw[2:]))
 	}
-	if filepath.IsAbs(raw) {
+	if filepath.IsAbs(raw) || strings.HasPrefix(raw, "/") {
 		return filepath.Clean(raw)
 	}
 	return filepath.Clean(filepath.Join(configDir, raw))

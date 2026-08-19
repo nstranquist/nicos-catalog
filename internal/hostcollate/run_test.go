@@ -3,6 +3,7 @@ package hostcollate
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -367,8 +368,8 @@ func TestRejectDuplicateIDs(t *testing.T) {
 		Source: "duplicate.yaml",
 	})
 	err := rejectDuplicateIDs(records)
-	duplicate, ok := err.(*catalog.DuplicateIDError)
-	if !ok {
+	var duplicate *catalog.DuplicateIDError
+	if !errors.As(err, &duplicate) {
 		t.Fatalf("error = %T %v, want *catalog.DuplicateIDError", err, err)
 	}
 	if duplicate.EntityID != "service.alpha" || duplicate.First.Source != "alpha.yaml" || duplicate.Second.Source != "duplicate.yaml" {
@@ -444,13 +445,13 @@ func TestFormatReportIncludesBuckets(t *testing.T) {
 }
 
 func TestExpandPathEdges(t *testing.T) {
-	if expandPath("~", "/Users/nico", "/host") != "/Users/nico" {
+	if filepath.ToSlash(expandPath("~", "/Users/nico", "/host")) != "/Users/nico" {
 		t.Fatal("tilde home")
 	}
-	if expandPath("~/", "/Users/nico", "/host") != "/Users/nico" {
+	if filepath.ToSlash(expandPath("~/", "/Users/nico", "/host")) != "/Users/nico" {
 		t.Fatal("tilde slash")
 	}
-	if expandPath("~/dev", "/Users/nico", "/host") != "/Users/nico/dev" {
+	if filepath.ToSlash(expandPath("~/dev", "/Users/nico", "/host")) != "/Users/nico/dev" {
 		t.Fatal("tilde join")
 	}
 	if expandPath("~", "", "/host") != "" {
@@ -459,7 +460,7 @@ func TestExpandPathEdges(t *testing.T) {
 	if expandPath("  ", "/home", "/host") != "" {
 		t.Fatal("blank path")
 	}
-	if expandPath("rel", "/home", "/host") != "/host/rel" {
+	if filepath.ToSlash(expandPath("rel", "/home", "/host")) != "/host/rel" {
 		t.Fatal("relative against host")
 	}
 }

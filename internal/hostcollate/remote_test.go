@@ -131,7 +131,7 @@ func TestIncludeIfGitdir(t *testing.T) {
 }
 
 func TestExpandGitPathAndIncludeCycle(t *testing.T) {
-	if expandGitPath("~/x", "/cfg", "/Users/nico") != "/Users/nico/x" {
+	if filepath.ToSlash(expandGitPath("~/x", "/cfg", "/Users/nico")) != "/Users/nico/x" {
 		t.Fatal("tilde include")
 	}
 	if expandGitPath("", "/cfg", "/h") != "" {

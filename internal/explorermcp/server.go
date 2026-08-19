@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -64,7 +65,7 @@ func (s *Server) Serve(ctx context.Context, input io.Reader, output io.Writer) e
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(make([]byte, 4096), maxInputBytes)
 	writer := bufio.NewWriter(output)
-	defer writer.Flush()
+	defer func() { _ = writer.Flush() }()
 	for scanner.Scan() {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -237,8 +238,9 @@ func tools() []map[string]any {
 
 func toolError(err error) toolResult {
 	summary := "The read-only catalog tool could not complete the request."
-	if typed, ok := err.(*explorerapi.QueryError); ok {
-		summary = typed.Summary
+	var queryErr *explorerapi.QueryError
+	if errors.As(err, &queryErr) {
+		summary = queryErr.Summary
 	} else if len(err.Error()) <= 160 {
 		summary = err.Error()
 	}

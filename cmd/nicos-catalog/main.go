@@ -19,8 +19,9 @@ import (
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-	os.Exit(run(ctx, os.Args[1:], os.Stdout, os.Stderr))
+	code := run(ctx, os.Args[1:], os.Stdout, os.Stderr)
+	stop()
+	os.Exit(code)
 }
 
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
@@ -297,10 +298,14 @@ func runCollate(ctx context.Context, hostRoot string, layout catalog.Layout, arg
 			return code
 		}
 	} else {
-		fmt.Fprint(stdout, hostcollate.FormatReport(report))
+		if _, err := fmt.Fprint(stdout, hostcollate.FormatReport(report)); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
+		if _, err := fmt.Fprintf(stderr, "nicos-catalog: %v\n", err); err != nil {
+			return 1
+		}
 		return 1
 	}
 	return 0

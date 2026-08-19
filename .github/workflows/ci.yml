@@ -134,9 +134,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: "24.19.0"
-          cache: pnpm
-          cache-dependency-path: explorer/pnpm-lock.yaml
       - run: corepack enable
+      - run: corepack prepare pnpm@10.12.1 --activate
       - run: make explorer-check
       - run: make verify-explorer-embed
 

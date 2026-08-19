@@ -63,7 +63,7 @@ func TestRunDefaultsToCurrentDirectory(t *testing.T) {
 	if err := os.Chdir(root); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(previous)
+	defer func() { _ = os.Chdir(previous) }()
 	receipt, err := Run(Options{DryRun: true})
 	if err != nil {
 		t.Fatal(err)

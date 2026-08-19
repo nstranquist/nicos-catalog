@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -115,7 +116,7 @@ func TestMCPResultCeilingCancellationAndInputBound(t *testing.T) {
 	}
 	canceled, cancel := context.WithCancel(context.Background())
 	cancel()
-	if err := server.Serve(canceled, strings.NewReader(""), &bytes.Buffer{}); err != context.Canceled {
+	if err := server.Serve(canceled, strings.NewReader(""), &bytes.Buffer{}); !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancel = %v", err)
 	}
 	tooLarge := strings.NewReader(strings.Repeat("x", maxInputBytes+1))

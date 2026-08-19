@@ -129,8 +129,8 @@ func localDanglingFindings(index catalog.Index) []explorercontract.HealthFinding
 
 func localEntity(item catalog.Entity) (explorercontract.Entity, error) {
 	entrypoint := boundedLabel(item.Entrypoint, maxEntryLabelBytes)
-	if filepath.IsAbs(strings.TrimSpace(item.Entrypoint)) {
-		entrypoint = boundedLabel(filepath.Base(item.Entrypoint), maxEntryLabelBytes)
+	if portableAbs(item.Entrypoint) {
+		entrypoint = boundedLabel(portableBase(item.Entrypoint), maxEntryLabelBytes)
 	} else {
 		entrypoint = strings.TrimPrefix(filepath.ToSlash(entrypoint), "../")
 	}
@@ -247,4 +247,23 @@ func projectedFindings(dataset explorercontract.Dataset) []explorercontract.Heal
 		return findings[i].EntityID < findings[j].EntityID
 	})
 	return findings
+}
+
+func portableAbs(path string) bool {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return false
+	}
+	if filepath.IsAbs(path) || strings.HasPrefix(path, "/") || strings.HasPrefix(path, `\\`) {
+		return true
+	}
+	return len(path) >= 3 && path[1] == ':' && (path[2] == '/' || path[2] == '\\')
+}
+
+func portableBase(path string) string {
+	normalized := strings.ReplaceAll(strings.TrimSpace(path), `\`, "/")
+	if i := strings.LastIndex(normalized, "/"); i >= 0 {
+		return normalized[i+1:]
+	}
+	return normalized
 }

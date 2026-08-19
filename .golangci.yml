@@ -28,6 +28,17 @@ linters:
       # Test fixtures deliberately construct malformed and hostile input.
       - path: _test\.go
         linters: [gosec, noctx]
+      # Explorer and host collation write public catalog files at 0644/0755.
+      - path: internal/explorer
+        linters: [gosec]
+      - path: internal/hostcollate
+        linters: [gosec]
+      - path: cmd/nicos-catalog/
+        linters: [gosec]
+      - path: internal/explorer
+        linters: [revive, nilerr, noctx, staticcheck]
+      - path: internal/hostcollate
+        linters: [revive, nilerr, noctx]
 
 formatters:
   enable:

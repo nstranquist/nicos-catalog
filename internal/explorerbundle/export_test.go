@@ -160,6 +160,16 @@ func TestExportCancellationAndHelpers(t *testing.T) {
 	if files, err := relativeFiles(root); err != nil || len(files) != 0 {
 		t.Fatalf("empty files = %v %v", files, err)
 	}
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, err := validateTarget(filepath.Join(resolvedRoot, "blank-forbidden"), []string{"  "}); err != nil || out == "" {
+		t.Fatalf("blank forbidden root = %q %v", out, err)
+	}
+	if err := rejectSymlinkChain(string(filepath.Separator)); err != nil {
+		t.Fatalf("filesystem root symlink check = %v", err)
+	}
 }
 
 func TestDirectoryAndStateHelpers(t *testing.T) {
@@ -186,6 +196,9 @@ func TestDirectoryAndStateHelpers(t *testing.T) {
 	if exists, owned, err := targetState(file); err != nil || !exists || owned {
 		t.Fatalf("file state = %v %v %v", exists, owned, err)
 	}
+	if _, _, err := targetState(filepath.Join(file, "child")); err == nil {
+		t.Fatal("state below file succeeded")
+	}
 	empty := filepath.Join(root, "empty")
 	_ = os.Mkdir(empty, 0o755)
 	if exists, owned, err := targetState(empty); err != nil || !exists || !owned {
@@ -200,6 +213,12 @@ func TestDirectoryAndStateHelpers(t *testing.T) {
 	_ = writeFile(filepath.Join(right, "a"), []byte("same"))
 	if equal, err := equalTrees(left, right); err != nil || !equal {
 		t.Fatalf("equal trees = %v %v", equal, err)
+	}
+	if _, err := equalTrees(filepath.Join(root, "missing-left"), right); err == nil {
+		t.Fatal("missing left tree succeeded")
+	}
+	if _, err := equalTrees(left, filepath.Join(root, "missing-right")); err == nil {
+		t.Fatal("missing right tree succeeded")
 	}
 	_ = writeFile(filepath.Join(right, "a"), []byte("different"))
 	if equal, _ := equalTrees(left, right); equal {

@@ -45,6 +45,24 @@ go test ./...
 go install ./cmd/nicos-catalog
 ```
 
+## Usage
+
+| Command | What it does |
+|---|---|
+| `nicos-catalog init` | Write missing starter files for a new corpus |
+| `nicos-catalog validate` | Check records against the engine schema |
+| `nicos-catalog reindex` | Rebuild the local index |
+| `nicos-catalog search` | BM25 search over the index |
+| `nicos-catalog graph` | Print the relationship graph |
+| `nicos-catalog drift` | Fail closed when files and the index disagree |
+| `nicos-catalog project` | Emit the closed public projection |
+| `nicos-catalog demo` / `demo --ui` | Synthetic Explorer; no personal data |
+| `nicos-catalog serve` | Read-only Explorer for an authored corpus |
+| `nicos-catalog export explorer` | Static public site from a public projection |
+| `nicos-catalog mcp --stdio` | Read-only MCP tools |
+
+`--json` is accepted on the verbs that print records. See the sections below for the exact flags.
+
 ## Five-minute Explorer
 
 The built-in demo contains synthetic entities only and writes to a temporary

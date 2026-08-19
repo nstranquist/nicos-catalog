@@ -1,0 +1,129 @@
+package catalog
+
+import (
+	"encoding/json"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"testing"
+)
+
+func TestPublicationVersionPinsAgree(t *testing.T) {
+	version := strings.TrimSpace(readPublicationFile(t, "VERSION"))
+	if !regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`).MatchString(version) {
+		t.Fatalf("VERSION is not a stable SemVer tag: %q", version)
+	}
+	plain := strings.TrimPrefix(version, "v")
+	var manifest struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal([]byte(readPublicationFile(t, "explorer", "package.json")), &manifest); err != nil {
+		t.Fatal(err)
+	}
+	if manifest.Version != plain {
+		t.Fatalf("Explorer version = %q, want %q", manifest.Version, plain)
+	}
+	for _, path := range [][]string{{"README.md"}, {"site", "src", "content", "docs", "install.md"}, {"docs", "releases", version + ".md"}} {
+		if content := readPublicationFile(t, path...); !strings.Contains(content, "@"+version) && !strings.Contains(content, " "+version) {
+			t.Errorf("%s does not pin %s", filepath.Join(path...), version)
+		}
+	}
+}
+
+func TestPublicationHasNoLocalExplorerDependencies(t *testing.T) {
+	var manifest struct {
+		Dependencies    map[string]string `json:"dependencies"`
+		DevDependencies map[string]string `json:"devDependencies"`
+	}
+	if err := json.Unmarshal([]byte(readPublicationFile(t, "explorer", "package.json")), &manifest); err != nil {
+		t.Fatal(err)
+	}
+	for name, value := range mergeDependencies(manifest.Dependencies, manifest.DevDependencies) {
+		lower := strings.ToLower(strings.TrimSpace(value))
+		for _, prefix := range []string{"file:", "link:", "workspace:", "http:", "https:", "git:"} {
+			if strings.HasPrefix(lower, prefix) {
+				t.Errorf("dependency %s uses non-registry source %q", name, value)
+			}
+		}
+	}
+}
+
+func TestPublicationExplorerSourceIsPortable(t *testing.T) {
+	forbidden := []string{
+		"nicos" + "-tools",
+		string(filepath.Separator) + "Users" + string(filepath.Separator),
+		"http" + "://",
+		"https" + "://",
+	}
+	err := filepath.WalkDir(filepath.Join("explorer", "src"), func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		for _, fragment := range forbidden {
+			if strings.Contains(string(content), fragment) {
+				t.Errorf("%s contains forbidden source fragment %q", path, fragment)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPublicationExplorerDistIsClosed(t *testing.T) {
+	index := readPublicationFile(t, "explorer", "dist", "index.html")
+	if strings.Contains(index, "http://") || strings.Contains(index, "https://") || !strings.Contains(index, "/assets/app-") {
+		t.Fatalf("Explorer index does not use closed local assets")
+	}
+	entries, err := os.ReadDir(filepath.Join("explorer", "dist", "assets"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var app, styles, routeChunks int
+	for _, entry := range entries {
+		name := entry.Name()
+		switch {
+		case strings.HasPrefix(name, "app-") && strings.HasSuffix(name, ".js"):
+			app++
+		case strings.HasPrefix(name, "index-") && strings.HasSuffix(name, ".css"):
+			styles++
+		case strings.HasPrefix(name, "route-") && strings.HasSuffix(name, ".js"):
+			routeChunks++
+		}
+		if strings.HasSuffix(name, ".map") {
+			t.Errorf("source map is present in Explorer dist: %s", name)
+		}
+	}
+	if app != 1 || styles != 1 || routeChunks < 5 {
+		t.Fatalf("Explorer assets = app:%d css:%d route chunks:%d", app, styles, routeChunks)
+	}
+}
+
+func readPublicationFile(t *testing.T, parts ...string) string {
+	t.Helper()
+	payload, err := os.ReadFile(filepath.Join(parts...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(payload)
+}
+
+func mergeDependencies(groups ...map[string]string) map[string]string {
+	merged := map[string]string{}
+	for _, group := range groups {
+		for name, value := range group {
+			merged[name] = value
+		}
+	}
+	return merged
+}

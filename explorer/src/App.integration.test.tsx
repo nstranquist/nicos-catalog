@@ -44,6 +44,7 @@ describe('Explorer application', () => {
 
     fireEvent.keyDown(dialog, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(sessionStorage.getItem('nicos-catalog:explorer:selected')).toBeNull()
   })
 })
 

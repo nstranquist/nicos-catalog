@@ -30,7 +30,7 @@ export default function Graph() {
   }
 
   return (
-    <main className="page graph-page" id="main-content" tabIndex={-1}>
+    <main className="page graph-page" id="main-content" data-test="graph" tabIndex={-1}>
       <header className="page-header compact-header"><p className="eyebrow">Progressive graph</p><h1>Start with shape. Then focus.</h1><p>Explorer never sends an unbounded full graph. Move from aggregates to a region or to one entity's one- or two-hop neighborhood.</p></header>
       {invalid.length > 0 && <StatePanel kind="notice" title="Some URL options were ignored" detail={`Unsupported or invalid options: ${invalid.join(', ')}.`} />}
       <form className="graph-controls" onSubmit={apply}>

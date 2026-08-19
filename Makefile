@@ -1,4 +1,4 @@
-.PHONY: verify demo install release-check cover fuzz bench docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
+.PHONY: verify demo install release-check verify-publication browser-smoke cover fuzz bench docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
 
 # Coverage floors ratchet upward only. Raising them is a normal change; lowering
 # them is a decision that should be argued for in review.
@@ -18,6 +18,7 @@ EXPLORER_GO_PACKAGES := \
 
 # The published version lives in exactly one place.
 VERSION := $(shell cat VERSION)
+EXPLORER_BASE ?= http://127.0.0.1:7797
 
 # Flags shared with the CI "reproducible" job so local and GHA exercise the same
 # dual-build contract. Empty -buildid= zeros the linker's non-deterministic ID;
@@ -91,6 +92,16 @@ install:
 
 release-check: verify
 	go run ./cmd/nicos-catalog --json version --expect $(VERSION)
+
+# This is the local release-candidate gate. It does not push, tag, or deploy.
+verify-publication: release-check docs-site
+	go test -run '^TestPublication' .
+
+# Start either the live Explorer or a static preview at EXPLORER_BASE first.
+# ndev keeps the browser transcript and the per-step verdicts as local proof.
+browser-smoke:
+	ndev browser script validate smoke/explorer.yaml
+	ndev browser script run smoke/explorer.yaml --session nicos-catalog-explorer-smoke --open --allow-drive --var base=$(EXPLORER_BASE) --json
 
 # Dual-build bit-identity across two isolated GOCACHE trees, matching
 # .github/workflows/ci.yml "reproducible". Never touches the developer's

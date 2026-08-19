@@ -64,7 +64,7 @@ export class ExplorerDataError extends Error {
   }
 }
 
-export async function discoverSource(fetcher: Fetcher = fetch): Promise<ExplorerSource> {
+export async function discoverSource(fetcher: Fetcher = (input, init) => globalThis.fetch(input, init)): Promise<ExplorerSource> {
   try {
     const response = await fetcher('/api/v1/status', { headers: { Accept: 'application/json' } })
     const payload = await response.json() as unknown

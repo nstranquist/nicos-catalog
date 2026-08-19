@@ -10,7 +10,7 @@ export default function Overview() {
   const graph = useQuery({ queryKey: ['graph', source.sourceDigest, 'aggregate', 'kind'], queryFn: () => source.graph({ mode: 'aggregate', groupBy: 'kind' }) })
 
   return (
-    <main className="page" id="main-content" tabIndex={-1}>
+    <main className="page" id="main-content" data-test="overview" tabIndex={-1}>
       <header className="page-header overview-hero">
         <p className="eyebrow">Read the system before changing it</p>
         <h1>One clear view of your software catalog.</h1>

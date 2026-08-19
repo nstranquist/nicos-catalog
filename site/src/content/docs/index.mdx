@@ -4,7 +4,7 @@ description: Typed, local-first software-catalog engine. Hosts inject Layout and
 template: splash
 hero:
   title: Nicos Catalog
-  tagline: A typed, local-first software-catalog engine. Point a Layout at a corpus. Get deterministic validation, BM25 search, a typed graph, drift gates, and a closed publication DTO.
+  tagline: A typed, local-first software-catalog engine and read-only Explorer. Validate, search, graph, inspect health, and export a closed public site.
   actions:
     - text: Docs
       link: /docs/
@@ -12,6 +12,9 @@ hero:
       variant: primary
     - text: Install
       link: /install/
+      variant: secondary
+    - text: Open Explorer
+      link: /explorer/
       variant: secondary
 ---
 
@@ -27,6 +30,9 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
   <Card title="Publication is closed" icon="seti:lock">
     `PublicEntity` cannot represent paths, owners, telemetry, query text, or valuation.
   </Card>
+  <Card title="Explorer is portable" icon="rocket">
+    The Go binary embeds the web application. Local use needs no Node runtime and sends no telemetry.
+  </Card>
 </CardGrid>
 
 ## Docs
@@ -35,6 +41,9 @@ This book is the **engine** user manual (`nicos-catalog` module and CLI). Host-o
 
 <CardGrid>
   <LinkCard title="Docs" href="/docs/" description="Enter the book. Sidebar, search, and every engine page." />
+  <LinkCard title="Explorer" href="/explorer/" description="Browse the catalog and open bounded dossiers, graphs, and health views." />
+  <LinkCard title="Static export" href="/static-export/" description="Build a deterministic public site from the closed projection." />
+  <LinkCard title="Read-only MCP" href="/mcp/" description="Connect an agent to bounded search, dossier, graph, and health tools." />
   <LinkCard title="Search" href="/search/" description="BM25 over the derived index." />
   <LinkCard title="Graph" href="/graph/" description="Typed relationship graph as Mermaid or JSON." />
   <LinkCard title="Drift and reconcile" href="/drift/" description="Exit code 3 means the catalog moved." />

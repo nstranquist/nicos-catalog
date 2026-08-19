@@ -13,7 +13,7 @@ export default function Health() {
   const health = useQuery({ queryKey: ['health', source.sourceDigest, search.severity], queryFn: () => source.health(search.severity as HealthSeverity | undefined) })
 
   return (
-    <main className="page" id="main-content" tabIndex={-1}>
+    <main className="page" id="main-content" data-test="health" tabIndex={-1}>
       <header className="page-header compact-header"><p className="eyebrow">Validation and drift</p><h1>Health without leakage.</h1><p>Findings use stable codes, projected entity IDs, and safe remediation text. Source paths and rejected values do not enter this view.</p></header>
       <div className="health-toolbar"><label htmlFor="severity">Severity</label><select id="severity" value={search.severity ?? ''} onChange={(event) => void navigate({ search: { severity: event.target.value as HealthSeverity || undefined } })}><option value="">All findings</option><option value="error">Errors</option><option value="warning">Warnings</option><option value="info">Information</option></select><span className="projection-chip">{source.projection} projection · {source.kind}</span></div>
       <QueryState query={health}>{(result) => (

@@ -7,11 +7,46 @@ Run the complete local gate before you propose a change:
 
 ```sh
 go test ./...
-go test -race ./...
-go vet ./...
-go build -trimpath ./cmd/nicos-catalog
-go run ./cmd/nicos-catalog --json demo
+make verify
+make docs-site
 ```
+
+`make verify` runs Go and Explorer checks. It also checks reproducible builds,
+generated contracts, and embedded assets.
+
+## Explorer source
+
+Install the pinned package graph before you change the UI:
+
+```sh
+make explorer-install
+```
+
+Run the Explorer development server on loopback:
+
+```sh
+corepack pnpm@11.13.0 --dir explorer dev
+```
+
+Run the complete Explorer check before you commit:
+
+```sh
+make explorer-check
+make verify-explorer-embed
+```
+
+The UI must not use a `file:` or `link:` dependency outside this repository.
+Do not edit generated contract files directly.
+
+If a Go contract changes, regenerate both contract files:
+
+```sh
+go generate ./internal/explorercontract
+make verify-explorer-contract
+```
+
+Commit the new `explorer/dist` bytes with their source changes. The Go install
+path embeds these bytes and does not run Node.
 
 To rebuild this book from the package root:
 

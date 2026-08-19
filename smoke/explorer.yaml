@@ -1,0 +1,100 @@
+# Nicos Catalog Explorer acceptance smoke.
+#
+# Live:
+#   nicos-catalog serve --listen 127.0.0.1:7797
+# Static:
+#   nicos-catalog export explorer --out <directory> --visibility public
+#   corepack pnpm@11.13.0 --dir explorer exec vite preview --outDir <directory> --host 127.0.0.1 --port 7797
+# Run:
+#   make browser-smoke EXPLORER_BASE=http://127.0.0.1:7797
+name: nicos-catalog-explorer-smoke
+session: nicos-catalog-explorer
+vars:
+  base: http://127.0.0.1:7797
+steps:
+  - verb: viewport
+    width: 360
+    height: 800
+    label: narrow phone layout
+  - verb: navigate
+    url: ${base}/
+    label: overview
+  - verb: wait
+    selector: '[data-test="overview"]'
+    timeout: 15s
+  - verb: console
+    label: overview reload has no JavaScript errors
+    console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+
+  - verb: viewport
+    width: 768
+    height: 1024
+    label: tablet layout
+  - verb: navigate
+    url: ${base}/catalog
+    label: bounded catalog
+  - verb: wait
+    selector: '[data-test="entity-row"]'
+    timeout: 15s
+  - verb: console
+    label: catalog reload has no JavaScript errors
+    console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+
+  - verb: viewport
+    width: 1440
+    height: 900
+    label: desktop dossier layout
+  - verb: wait
+    selector: '[data-test="entity-row"]'
+    timeout: 15s
+  - verb: eval
+    label: focus the Seed API dossier control
+    js: "document.querySelector('button[aria-label=\"Open dossier for Seed API\"]')?.focus(); document.activeElement?.getAttribute('aria-label') || 'missing'"
+    assert: { contains: "Open dossier for Seed API" }
+  - verb: press
+    key: Enter
+    label: open the Seed API dossier with the keyboard
+  - verb: assert_visible
+    selector: '[data-test="dossier"]'
+  - verb: press
+    key: Escape
+    label: close the dossier with the keyboard
+  - verb: eval
+    label: dossier is closed
+    js: "document.querySelector('[data-test=dossier]') === null ? 'closed' : 'open'"
+    assert: { contains: "closed" }
+  - verb: navigate
+    url: ${base}/graph
+    label: bounded graph
+  - verb: wait
+    selector: '[data-test="graph-data"]'
+    timeout: 15s
+  - verb: console
+    label: graph reload has no JavaScript errors
+    console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+
+  - verb: viewport
+    width: 2560
+    height: 1440
+    label: wide desktop layout
+  - verb: navigate
+    url: ${base}/health
+    label: projected health
+  - verb: wait
+    selector: '[data-test="health"]'
+    timeout: 15s
+  - verb: console
+    label: health reload has no JavaScript errors
+    console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: navigate
+    url: ${base}/entity/service.seed-api
+    label: direct dossier route
+  - verb: wait
+    selector: '[data-test="entity"]'
+    timeout: 15s
+  - verb: assert_text
+    selector: '[data-test="entity"]'
+    assert: { contains: "Seed API" }
+  - verb: console
+    label: direct dossier reload has no JavaScript errors
+    console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }

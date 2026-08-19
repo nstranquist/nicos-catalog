@@ -36,6 +36,7 @@ export default defineConfig({
           items: [
             { label: 'Docs', slug: 'docs' },
             { label: 'Install', slug: 'install' },
+            { label: 'Explorer', slug: 'explorer' },
           ],
         },
         {
@@ -46,6 +47,8 @@ export default defineConfig({
             { label: 'Graph', slug: 'graph' },
             { label: 'Drift and reconcile', slug: 'drift' },
             { label: 'CLI', slug: 'cli' },
+            { label: 'Static export', slug: 'static-export' },
+            { label: 'Read-only MCP', slug: 'mcp' },
           ],
         },
         {
@@ -55,6 +58,7 @@ export default defineConfig({
             { label: 'API stability', slug: 'stability' },
             { label: 'Privacy and public DTO', slug: 'privacy' },
             { label: 'Migrate from v0.1', slug: 'migrate' },
+            { label: 'Troubleshooting', slug: 'troubleshooting' },
           ],
         },
         {

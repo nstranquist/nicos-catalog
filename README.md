@@ -5,12 +5,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/nstranquist/nicos-catalog)](https://goreportcard.com/report/github.com/nstranquist/nicos-catalog)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Nicos Catalog is a local software-catalog engine for repositories, services,
-products, documents, and the relationships between them. A host supplies the
-folder layout and data plugins. The engine validates records, indexes them,
-searches them (BM25), builds a relationship graph, and fails a drift check
-when the catalog no longer matches the source files. The public export format
-omits private data.
+Nicos Catalog is a local software-catalog engine and read-only Explorer. It
+models repositories, services, products, documents, and their relationships.
+A host supplies the folder layout and data providers. The engine validates,
+indexes, searches, graphs, and checks the catalog for drift.
+
+Explorer gives people and agents the same bounded catalog view. It runs from
+the Go binary and needs no Node runtime. A static export uses the closed public
+projection and can be hosted without a catalog daemon.
 
 The public core leaves out personal telemetry, business valuation, private
 query text, runtime credentials, and host-only portfolio policy. Those stay
@@ -20,10 +22,11 @@ in host adapters.
 
 <img src="assets/brand/nicos-catalog.svg" width="96" height="96" alt="Nicos Catalog application icon">
 
+![Nicos Catalog Explorer overview with synthetic entities](screenshots/explorer-overview.png)
+
 ![Nicos Catalog running inside Catalog Gallery as an independent synthetic host](portfolio/assets/catalog-engine.png)
 
-This page is a second host of the public Go engine. The entities are
-synthetic fixtures; the engine boundary is real. A CLI walk of the same
+The Explorer and Gallery images use synthetic fixtures. A CLI walk of the same
 demo is in [screenshots/](screenshots/).
 
 ## Install
@@ -31,8 +34,8 @@ demo is in [screenshots/](screenshots/).
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.2.0
-nicos-catalog version --expect v0.2.0
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.0
+nicos-catalog version --expect v0.3.0
 ```
 
 For a source checkout:
@@ -42,15 +45,38 @@ go test ./...
 go install ./cmd/nicos-catalog
 ```
 
-## Five-minute smoke
+## Five-minute Explorer
 
 The built-in demo contains synthetic entities only and writes to a temporary
-directory that is removed on exit.
+directory. The command removes that directory when the server stops.
+
+```sh
+nicos-catalog demo --ui --open
+```
+
+Explorer listens on a random loopback port. Press `Ctrl-C` to stop it. Use
+`demo --ui` without `--open` when a browser must not open automatically.
+
+The JSON and terminal demo remain available:
 
 ```sh
 nicos-catalog demo
 nicos-catalog --json demo --query "developer platform"
 ```
+
+## Start an authored catalog
+
+Run these commands in an empty project directory:
+
+```sh
+nicos-catalog init --template sample
+nicos-catalog validate
+nicos-catalog reindex
+nicos-catalog serve --open
+```
+
+`init` writes only missing starter files. `serve` is read-only and accepts a
+loopback address only.
 
 To exercise an authored corpus from this repository:
 
@@ -62,6 +88,31 @@ nicos-catalog --root . --corpus demo/catalog graph
 nicos-catalog --root . --corpus demo/catalog drift
 nicos-catalog --root . --corpus demo/catalog --json project --visibility public --allow-hosts example.com
 ```
+
+## Export a static public Explorer
+
+Reindex the corpus before an export. Then select the public visibility boundary
+explicitly:
+
+```sh
+nicos-catalog reindex
+nicos-catalog export explorer --out ./public-catalog --visibility public --allow-hosts example.com
+```
+
+The command writes one deterministic site. It rejects an unsafe output path,
+a symlink path, and a non-Explorer directory. The export contains projected
+entities only. See [the static export guide](docs/static-export.md).
+
+## Connect an agent
+
+Start the read-only stdio MCP server after you build the index:
+
+```sh
+nicos-catalog mcp --stdio
+```
+
+The server exposes bounded search, dossier, graph, and health tools. It has no
+write tool and sends no telemetry. See [the MCP guide](docs/mcp.md).
 
 GitHub-local collation is a host command, off until `<config>/settings.yaml`
 names a profile and sets `github.collation.enabled: true`. It walks local
@@ -125,8 +176,15 @@ Catalog keeps the data portable and reviewable while still providing the pieces
 that make a catalog operational: provider boundaries, deterministic derived
 state, search, typed relationships, and drift enforcement.
 
-See [docs/architecture.md](docs/architecture.md) for design boundaries and
-[SECURITY.md](SECURITY.md) for publication guidance.
+See [the Explorer guide](docs/explorer.md),
+[docs/architecture.md](docs/architecture.md), and
+[SECURITY.md](SECURITY.md).
+
+## Release state
+
+This checkout can be build-ready before `v0.3.0` is public. A local build is
+not a release. A release is not deployment, launch, adoption, or revenue. The
+[release candidate record](docs/releases/v0.3.0.md) lists each external gate.
 
 ## License
 

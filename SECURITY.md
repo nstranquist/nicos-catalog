@@ -1,8 +1,8 @@
 # Security and privacy
 
-Nicos Catalog is local-first and does not perform network requests. Providers
-are host code and should be reviewed with the same care as any filesystem or API
-integration.
+Nicos Catalog is local-first. The core and Explorer do not send telemetry or
+make third-party network requests. Providers are host code. Review each provider
+as a filesystem or API integration.
 
 For public output, use `ProjectPublic` or the `project` command. Do not publish
 the private index: it may contain entrypoints, owners, annotations, internal
@@ -55,3 +55,36 @@ artifact, and this document in the same commit; the tests fail until it does.
 
 Report vulnerabilities privately through the repository security advisory
 flow. Do not include secrets or private catalog data in a public issue.
+
+## Explorer server boundary
+
+`serve` and `demo --ui` bind to loopback only. The server rejects a
+non-loopback address before it opens a listener. It also rejects an unknown
+request `Host` value.
+
+The server accepts `GET` and `HEAD` only. It sets a restrictive Content
+Security Policy and finite timeouts. It does not set a permissive CORS header.
+
+Local Explorer projection is not raw provider data. It excludes source paths,
+annotations, sidecars, credentials, telemetry, query history, and valuation.
+
+## Static export boundary
+
+`export explorer` accepts public projection only. It starts from
+`ProjectPublic` and does not filter private fields after serialization.
+
+The command refuses a filesystem root, a symlink path, a protected catalog
+directory, and an unknown non-empty directory. It writes a unique temporary
+directory before it replaces a prior complete export.
+
+Each static data file has a SHA-256 digest in `data/manifest.json`. The browser
+checks the digest before it uses the data.
+
+## MCP boundary
+
+`mcp --stdio` exposes read-only tools only. It opens no network listener. Each
+response is less than 64 KiB. Graph tools have fixed node, edge, and depth
+limits.
+
+MCP errors contain stable codes and bounded summaries. They do not reproduce a
+rejected query value, source path, or provider payload.

@@ -15,7 +15,7 @@ export default function EntityPage() {
   writeSelection(entityId)
 
   return (
-    <main className="page entity-page" id="main-content" tabIndex={-1}>
+    <main className="page entity-page" id="main-content" data-test="entity" tabIndex={-1}>
       <nav className="breadcrumb" aria-label="Breadcrumb"><Link to={search.from ?? '/catalog'} search={{}}>← Back to {label(search.from)}</Link></nav>
       <QueryState query={query}>{(result) => <><DossierContent dossier={result.data} meta={result.meta} /><div className="entity-actions"><Link to="/graph" search={{ mode: 'neighborhood', id: entityId, depth: 1 }}>Open bounded neighborhood</Link></div></>}</QueryState>
     </main>

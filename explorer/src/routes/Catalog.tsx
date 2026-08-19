@@ -1,13 +1,13 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Entity, SearchHit } from '../generated/contract'
 import { DossierDrawer } from '../components/DossierDrawer'
 import { EntityKind, EntityStatus } from '../components/EntityBits'
 import { QueryState, StatePanel } from '../components/StatePanel'
 import { useSource } from '../lib/source-context'
 import { invalidCatalogParams } from '../url-state'
-import { readSelection } from '../selection-store'
+import { readSelection, writeSelection } from '../selection-store'
 
 const route = getRouteApi('/catalog')
 
@@ -23,6 +23,7 @@ export default function Catalog() {
   const source = useSource()
   const search = route.useSearch()
   const navigate = useNavigate({ from: '/catalog' })
+  const restoredSelection = useRef(false)
   const [draft, setDraft] = useState(search.q ?? '')
   const invalid = useMemo(() => invalidCatalogParams(new URLSearchParams(location.search)), [search])
   const query = useQuery({
@@ -39,12 +40,15 @@ export default function Catalog() {
 
   useEffect(() => setDraft(search.q ?? ''), [search.q])
   useEffect(() => {
+    if (restoredSelection.current) return
+    restoredSelection.current = true
     if (search.selected) return
     const previous = readSelection()
     if (previous) void navigate({ search: (old) => ({ ...old, selected: previous }), replace: true })
   }, [navigate, search.selected])
 
   const closeDrawer = useCallback(() => {
+    writeSelection(undefined)
     void navigate({ search: (old) => ({ ...old, selected: undefined }), replace: true })
   }, [navigate])
 
@@ -59,7 +63,7 @@ export default function Catalog() {
   }
 
   return (
-    <main className="page" id="main-content" tabIndex={-1}>
+    <main className="page" id="main-content" data-test="catalog" tabIndex={-1}>
       <header className="page-header compact-header">
         <p className="eyebrow">Catalog and search</p>
         <h1>Find the exact thing.</h1>
@@ -87,7 +91,7 @@ export default function Catalog() {
               <thead><tr><th scope="col">Entity</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col">Surface</th><th scope="col">Match</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead>
               <tbody>{result.items.map((entity) => {
                 const hit = result.hits?.get(entity.id)
-                return <tr key={entity.id}><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open dossier for ${entity.name}`}>Open</button></td></tr>
+                return <tr key={entity.id} data-test="entity-row"><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" data-test="open-dossier" onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open dossier for ${entity.name}`}>Open</button></td></tr>
               })}</tbody>
             </table>
           </div>

@@ -24,7 +24,7 @@ export function GraphView({ graph }: { graph: GraphPage }) {
           })}</g>
         </svg>
       </section>
-      <section className="graph-tables" aria-labelledby="graph-data-heading">
+      <section className="graph-tables" data-test="graph-data" aria-labelledby="graph-data-heading">
         <h2 id="graph-data-heading">Graph data</h2>
         <details open><summary>Nodes ({graph.nodes.length})</summary><div className="table-wrap"><table><thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Count</th><th scope="col">Next</th></tr></thead><tbody>{graph.nodes.map((node) => <tr key={node.id}><td>{node.name}</td><td>{node.aggregate ? graph.group_by : node.kind || 'entity'}</td><td>{node.count ?? 1}</td><td>{node.aggregate && node.group ? <Link to="/graph" search={{ mode: 'region', group_by: graph.group_by ?? 'kind', group: node.group }}>Open region</Link> : <Link to="/graph" search={{ mode: 'neighborhood', id: node.id, depth: 1 }}>Open neighborhood</Link>}</td></tr>)}</tbody></table></div></details>
         <details><summary>Relationships ({graph.edges.length})</summary><div className="table-wrap"><table><thead><tr><th scope="col">Source</th><th scope="col">Kind</th><th scope="col">Target</th><th scope="col">Count</th></tr></thead><tbody>{graph.edges.map((edge, index) => <tr key={`${edge.source}-${edge.kind}-${edge.target}-${index}`}><td><code>{edge.source}</code></td><td>{edge.kind}</td><td><code>{edge.target}</code></td><td>{edge.count ?? 1}</td></tr>)}</tbody></table></div></details>

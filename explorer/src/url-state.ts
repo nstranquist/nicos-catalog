@@ -66,6 +66,16 @@ export function parseGraphSearch(raw: Record<string, unknown>): GraphSearchState
   })
 }
 
+export function serializeCatalogSearch(state: CatalogSearchState): URLSearchParams {
+  const parsed = parseCatalogSearch(state as Record<string, unknown>)
+  return serialize(parsed, ['q', 'kind', 'status', 'surface', 'tag', 'sort', 'direction', 'cursor', 'selected'])
+}
+
+export function serializeGraphSearch(state: GraphSearchState): URLSearchParams {
+  const parsed = parseGraphSearch(state as Record<string, unknown>)
+  return serialize(parsed, ['mode', 'group_by', 'group', 'id', 'depth'])
+}
+
 export function invalidCatalogParams(params: URLSearchParams): string[] {
   const allowed = new Set(['q', 'kind', 'status', 'surface', 'tag', 'sort', 'direction', 'cursor', 'selected'])
   const raw = Object.fromEntries(params)
@@ -96,4 +106,14 @@ export function invalidGraphParams(params: URLSearchParams): string[] {
 
 function compact<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T
+}
+
+function serialize<T extends object>(value: T, order: readonly string[]): URLSearchParams {
+  const params = new URLSearchParams()
+  const record = value as Record<string, unknown>
+  for (const key of order) {
+    const item = record[key]
+    if (item !== undefined) params.set(key, String(item))
+  }
+  return params
 }

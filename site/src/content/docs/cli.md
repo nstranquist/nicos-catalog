@@ -18,6 +18,16 @@ The `nicos-catalog` command is part of the public contract. Documented flags and
 
 ## Commands
 
+### `init`
+
+Writes a minimal or sample starter corpus. It refuses a different existing
+file. Use `--dry-run` to inspect the complete plan without a write.
+
+```sh
+nicos-catalog init --template sample --dry-run
+nicos-catalog init --template sample
+```
+
 ### `validate`
 
 Runs providers, normalizes, and reports entity counts and warnings. Does not write the index.
@@ -92,6 +102,38 @@ Publishes the closed public DTO. Require an explicit visibility and URL host all
 ```sh
 nicos-catalog --root . --corpus demo/catalog --json project --visibility public --allow-hosts example.com
 ```
+
+### `serve`
+
+Runs Explorer on a loopback address. Rebuild a stale index before this command.
+
+```sh
+nicos-catalog reindex
+nicos-catalog serve --open
+```
+
+Use `--projection public --allow-hosts example.com` for a public projection
+review. The server rejects a non-loopback bind and an unknown request host.
+
+### `export explorer`
+
+Writes a deterministic static public site. `--visibility public` is required.
+
+```sh
+nicos-catalog export explorer --out ./public-catalog --visibility public --allow-hosts example.com
+```
+
+See [Static export](/static-export/) for target safety and hosting rules.
+
+### `mcp`
+
+Runs the bounded read-only MCP server over standard input and output.
+
+```sh
+nicos-catalog mcp --stdio
+```
+
+Do not combine this command with `--json`. See [Read-only MCP](/mcp/).
 
 ### `demo` / `version`
 

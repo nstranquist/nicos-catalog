@@ -35,7 +35,7 @@ export function DossierDrawer({ entityID, onClose }: { entityID: string; onClose
 
   return (
     <div className="drawer-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <div className="dossier-drawer" role="dialog" aria-modal="true" aria-label={`Entity dossier: ${entityID}`} ref={panel} onKeyDown={keydown}>
+      <div className="dossier-drawer" data-test="dossier" role="dialog" aria-modal="true" aria-label={`Entity dossier: ${entityID}`} ref={panel} onKeyDown={keydown}>
         <button className="drawer-close" type="button" ref={close} onClick={onClose} aria-label="Close dossier">Close <span aria-hidden="true">×</span></button>
         <QueryState query={query}>{(result) => <DossierContent dossier={result.data} meta={result.meta} />}</QueryState>
       </div>

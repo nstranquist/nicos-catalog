@@ -40,6 +40,21 @@ describe('projected entity filtering and ranking', () => {
 })
 
 describe('live Explorer source', () => {
+  it('keeps the browser fetch receiver bound for later reads', async () => {
+    const nativeLikeFetch = vi.fn(function (this: typeof globalThis, input: RequestInfo | URL) {
+      if (this !== globalThis) throw new TypeError('Illegal invocation')
+      if (String(input) === '/api/v1/status') return Promise.resolve(jsonResponse(envelope({ product_version: 'v0.3.0', api_schema_version: 1, entity_count: 1, edge_count: 0, finding_count: 0 })))
+      return Promise.resolve(jsonResponse(envelope({ items: [catalogEntities[0]] }, { total: 1 })))
+    })
+    vi.stubGlobal('fetch', nativeLikeFetch)
+    try {
+      const source = await discoverSource()
+      expect((await source.entities({ limit: 1 })).data.items).toHaveLength(1)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('discovers the API and maps every bounded read', async () => {
     const requests: string[] = []
     const fetcher: Fetcher = vi.fn(async (input) => {

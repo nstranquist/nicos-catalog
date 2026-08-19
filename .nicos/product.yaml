@@ -12,6 +12,8 @@ license: Apache-2.0
 tags:
   - go
   - cli
+  - react
+  - explorer
   - developer-platform
   - software-catalog
   - local-first
@@ -26,5 +28,11 @@ checks:
     command: [go, vet, ./...]
   - name: build
     command: [go, build, -o, /dev/null, ./cmd/nicos-catalog]
-description: Typed, host-injected software-catalog engine and CLI with provider plugins, deterministic indexing, BM25 full-text search, relationship graphs, drift/reconcile gates, a synthetic demo, and a closed privacy-safe public projection.
+  - name: explorer
+    command: [make, explorer-check]
+  - name: embedded-assets
+    command: [make, verify-explorer-embed]
+  - name: publication
+    command: [make, verify-publication]
+description: Typed, host-injected software-catalog engine, read-only Explorer, static public export, and bounded MCP server.
 portfolio_manifest: portfolio/manifest.yaml

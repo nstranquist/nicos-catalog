@@ -15,7 +15,15 @@ export function DossierDrawer({ entityID, onClose }: { entityID: string; onClose
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
     writeSelection(entityID)
     close.current?.focus()
-    return () => previous?.focus()
+    return () => {
+      window.setTimeout(() => {
+        if (document.querySelector('[data-test="dossier"]')) return
+        const opener = [...document.querySelectorAll<HTMLElement>('[data-test="open-dossier"]')]
+          .find((element) => element.dataset.entityId === entityID)
+        const current = opener ?? (previous !== document.body && previous?.isConnected ? previous : undefined)
+        current?.focus()
+      }, 0)
+    }
   }, [entityID])
 
   function keydown(event: KeyboardEvent<HTMLDivElement>) {

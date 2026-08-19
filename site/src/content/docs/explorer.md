@@ -41,6 +41,10 @@ does not set a permissive CORS header.
 Press `/` to focus global search. Press `g` and a navigation key to change a
 view. The keys are `o`, `c`, `g`, and `h`.
 
+Explorer supports light, dark, and automatic themes. It honors reduced-motion,
+increased-contrast, and forced-colors browser settings. The dossier keeps
+keyboard focus inside while open and returns focus to its opener when closed.
+
 Explorer stores one selected entity ID in session storage. It does not store
 query history or entity bodies. See the full
 [Explorer contract](https://github.com/nstranquist/nicos-catalog/blob/main/docs/explorer.md).

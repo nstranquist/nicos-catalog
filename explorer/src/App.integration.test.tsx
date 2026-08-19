@@ -36,7 +36,8 @@ describe('Explorer application', () => {
 
     await user.click(screen.getByRole('link', { name: /^catalog/i }))
     expect(await screen.findByRole('heading', { name: /find the exact thing/i })).toBeVisible()
-    await user.click(await screen.findByRole('button', { name: /open dossier for seed api/i }))
+    const openDossier = await screen.findByRole('button', { name: /open dossier for seed api/i })
+    await user.click(openDossier)
     const dialog = await screen.findByRole('dialog', { name: /seed-api/i })
     expect(dialog).toBeVisible()
     expect(screen.getByRole('button', { name: /close dossier/i })).toHaveFocus()
@@ -44,6 +45,7 @@ describe('Explorer application', () => {
 
     fireEvent.keyDown(dialog, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /open dossier for seed api/i })).toHaveFocus())
     expect(sessionStorage.getItem('nicos-catalog:explorer:selected')).toBeNull()
   })
 })

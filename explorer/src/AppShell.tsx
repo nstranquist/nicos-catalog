@@ -74,7 +74,7 @@ export default function AppShell() {
           <Link to="/" search={{}} className="brand-mark" aria-label="Nicos Catalog Explorer home">NC</Link>
           <div><strong>Nicos Catalog</strong><span>Explorer</span></div>
         </div>
-        <nav>
+        <nav aria-label="Primary">
           {navigation.map((item, index) => (
             <Link key={item.to} to={item.to} search={{}} activeOptions={{ exact: item.to === '/' }} activeProps={{ 'aria-current': 'page' }}>
               <span className="nav-index" aria-hidden="true">0{index + 1}</span>

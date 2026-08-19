@@ -59,6 +59,10 @@ browser session. It does not store query history or entity bodies.
 The drawer traps `Tab` focus and restores focus when it closes. Each graph has
 an equivalent node and relationship table.
 
+Explorer supports light, dark, and automatic themes. It honors reduced-motion,
+increased-contrast, and forced-colors browser settings. All text and focus
+tokens meet a 4.5:1 contrast floor in the light and dark themes.
+
 ## Data limits
 
 - One entity page contains at most 100 rows.

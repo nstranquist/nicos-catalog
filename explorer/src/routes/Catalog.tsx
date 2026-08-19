@@ -91,7 +91,7 @@ export default function Catalog() {
               <thead><tr><th scope="col">Entity</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col">Surface</th><th scope="col">Match</th><th scope="col"><span className="sr-only">Open</span></th></tr></thead>
               <tbody>{result.items.map((entity) => {
                 const hit = result.hits?.get(entity.id)
-                return <tr key={entity.id} data-test="entity-row"><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" data-test="open-dossier" onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open dossier for ${entity.name}`}>Open</button></td></tr>
+                return <tr key={entity.id} data-test="entity-row"><td><strong>{entity.name}</strong><code>{entity.id}</code></td><td><EntityKind value={entity.kind} /></td><td><EntityStatus value={entity.status} /></td><td>{entity.surface || <span className="quiet">—</span>}</td><td>{hit ? hit.matched_terms.join(', ') : <span className="quiet">—</span>}</td><td><button type="button" data-test="open-dossier" data-entity-id={entity.id} onClick={() => void navigate({ search: (old) => ({ ...old, selected: entity.id }) })} aria-label={`Open dossier for ${entity.name}`}>Open</button></td></tr>
               })}</tbody>
             </table>
           </div>

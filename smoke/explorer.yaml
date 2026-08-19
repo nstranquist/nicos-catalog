@@ -22,6 +22,27 @@ steps:
   - verb: wait
     selector: '[data-test="overview"]'
     timeout: 15s
+  - verb: eval
+    label: overview has one main landmark and an ordered heading outline
+    js: "[document.querySelectorAll('main').length, document.querySelectorAll('h1').length, document.querySelectorAll('nav[aria-label=Primary]').length, document.querySelectorAll('[role=search]').length].join(':')"
+    assert: { contains: "1:1:1:1" }
+  - verb: click
+    selector: '.theme-button'
+    label: select the light theme
+  - verb: eval
+    label: light theme is active
+    js: "document.documentElement.dataset.theme || 'missing'"
+    assert: { contains: "light" }
+  - verb: click
+    selector: '.theme-button'
+    label: select the dark theme
+  - verb: eval
+    label: dark theme is active
+    js: "document.documentElement.dataset.theme || 'missing'"
+    assert: { contains: "dark" }
+  - verb: click
+    selector: '.theme-button'
+    label: return to the automatic theme
   - verb: console
     label: overview reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
@@ -56,6 +77,17 @@ steps:
     label: open the Seed API dossier with the keyboard
   - verb: assert_visible
     selector: '[data-test="dossier"]'
+  - verb: eval
+    label: dossier receives focus
+    js: "document.activeElement?.getAttribute('aria-label') || 'missing'"
+    assert: { contains: "Close dossier" }
+  - verb: press
+    key: Tab
+    label: move within the dossier focus trap
+  - verb: eval
+    label: focus stays inside the dossier
+    js: "document.activeElement?.closest('[data-test=dossier]') ? 'inside' : 'outside'"
+    assert: { contains: "inside" }
   - verb: press
     key: Escape
     label: close the dossier with the keyboard
@@ -63,6 +95,10 @@ steps:
     label: dossier is closed
     js: "document.querySelector('[data-test=dossier]') === null ? 'closed' : 'open'"
     assert: { contains: "closed" }
+  - verb: eval
+    label: dossier returns focus to its opener
+    js: "document.activeElement?.getAttribute('aria-label') || 'missing'"
+    assert: { contains: "Open dossier for Seed API" }
   - verb: navigate
     url: ${base}/graph
     label: bounded graph

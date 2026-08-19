@@ -9,7 +9,7 @@
   --accent: #a43d28;
   --accent-soft: #ead2c8;
   --good: #287351;
-  --warn: #a16714;
+  --warn: #965f0d;
   --bad: #a02e31;
   --focus: #1769aa;
   --shadow: 0 18px 60px rgb(31 30 26 / 18%);
@@ -241,6 +241,17 @@ th, td { padding: .85rem .7rem; border-bottom: 1px solid var(--line); vertical-a
 @media (prefers-contrast: more) {
   :root { --line: currentColor; --line-strong: currentColor; }
   .rail nav a[aria-current='page'] { outline: .15rem solid currentColor; }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --paper: Canvas; --paper-raised: Canvas; --ink: CanvasText; --muted: CanvasText;
+    --line: CanvasText; --line-strong: CanvasText; --accent: LinkText;
+    --accent-soft: Canvas; --good: CanvasText; --warn: CanvasText; --bad: CanvasText;
+    --focus: Highlight;
+  }
+  .bar-fill, .status-dot > span { background: ButtonText; }
+  .rail nav a[aria-current='page'] { border-left-color: Highlight; outline: .15rem solid Highlight; }
 }
 
 @media print {

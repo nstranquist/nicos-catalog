@@ -19,8 +19,28 @@ type Options struct {
 	DryRun   bool
 }
 
+type fileOps struct {
+	mkdirAll      func(string, os.FileMode) error
+	openExclusive func(string) (*os.File, error)
+	remove        func(string) error
+}
+
+func systemFileOps() fileOps {
+	return fileOps{
+		mkdirAll: os.MkdirAll,
+		openExclusive: func(path string) (*os.File, error) {
+			return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		},
+		remove: os.Remove,
+	}
+}
+
 // Run preflights the complete plan before writing any file.
 func Run(options Options) (explorercontract.InitReceipt, error) {
+	return run(options, systemFileOps())
+}
+
+func run(options Options, filesys fileOps) (explorercontract.InitReceipt, error) {
 	template := strings.TrimSpace(options.Template)
 	if template == "" {
 		template = "minimal"
@@ -73,7 +93,7 @@ func Run(options Options) (explorercontract.InitReceipt, error) {
 	created := make([]string, 0)
 	rollback := func() {
 		for _, path := range created {
-			_ = os.Remove(path)
+			_ = filesys.remove(path)
 		}
 	}
 	for _, rel := range paths {
@@ -89,11 +109,11 @@ func Run(options Options) (explorercontract.InitReceipt, error) {
 		if strings.HasPrefix(filepath.ToSlash(rel), ".nicos-catalog/") {
 			mode = 0o700
 		}
-		if err := os.MkdirAll(filepath.Dir(target), mode); err != nil {
+		if err := filesys.mkdirAll(filepath.Dir(target), mode); err != nil {
 			rollback()
 			return receipt, err
 		}
-		file, err := os.OpenFile(target, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		file, err := filesys.openExclusive(target)
 		if err != nil {
 			rollback()
 			return receipt, fmt.Errorf("init target changed during write")
@@ -101,7 +121,7 @@ func Run(options Options) (explorercontract.InitReceipt, error) {
 		_, writeErr := file.Write(files[rel])
 		closeErr := file.Close()
 		if writeErr != nil || closeErr != nil {
-			_ = os.Remove(target)
+			_ = filesys.remove(target)
 			rollback()
 			if writeErr != nil {
 				return receipt, writeErr

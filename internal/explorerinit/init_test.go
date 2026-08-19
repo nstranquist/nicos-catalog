@@ -154,12 +154,24 @@ func TestRunFilesystemFailuresDoNotOverwrite(t *testing.T) {
 		t.Fatal("directory target succeeded")
 	}
 
-	readOnly := canonicalTemp(t)
-	if err := os.Chmod(readOnly, 0o500); err != nil {
+	failedWrite := canonicalTemp(t)
+	owner := filepath.Join(failedWrite, "owner.txt")
+	if err := os.WriteFile(owner, []byte("caller data"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chmod(readOnly, 0o700)
-	if _, err := Run(Options{Root: readOnly}); err == nil {
-		t.Fatal("read-only root succeeded")
+	filesys := systemFileOps()
+	filesys.mkdirAll = func(string, os.FileMode) error { return os.ErrPermission }
+	receipt, err := run(Options{Root: failedWrite}, filesys)
+	if err == nil || len(receipt.Written) != 0 {
+		t.Fatalf("injected write failure = %+v %v", receipt, err)
+	}
+	payload, readErr := os.ReadFile(owner)
+	if readErr != nil || string(payload) != "caller data" {
+		t.Fatalf("caller file changed = %q %v", payload, readErr)
+	}
+	for _, path := range []string{".nicos-catalog", "catalog"} {
+		if _, statErr := os.Stat(filepath.Join(failedWrite, path)); !os.IsNotExist(statErr) {
+			t.Fatalf("partial output %q remains: %v", path, statErr)
+		}
 	}
 }

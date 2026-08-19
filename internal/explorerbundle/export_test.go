@@ -44,6 +44,13 @@ func TestExportDeterministicOwnedReplacement(t *testing.T) {
 			t.Fatalf("missing %s: %v", name, err)
 		}
 	}
+	indexBytes, err := os.ReadFile(filepath.Join(out, "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(indexBytes), staticSourceMarker) || strings.Contains(string(indexBytes), liveSourceMarker) {
+		t.Fatalf("static source marker missing from index: %s", indexBytes)
+	}
 	manifestBytes, err := os.ReadFile(filepath.Join(out, "data", "manifest.json"))
 	if err != nil {
 		t.Fatal(err)

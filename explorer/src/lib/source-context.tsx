@@ -7,7 +7,7 @@ const SourceContext = createContext<ExplorerSource | undefined>(undefined)
 export function SourceProvider({ children }: { children: ReactNode }) {
   const source = useQuery({
     queryKey: ['explorer-source'],
-    queryFn: () => discoverSource(),
+    queryFn: () => discoverSource(undefined, preferredSource()),
     staleTime: Infinity,
     retry: 1,
   })
@@ -19,6 +19,12 @@ export function SourceProvider({ children }: { children: ReactNode }) {
     return <BootstrapState title="Explorer could not open" detail={source.error instanceof Error ? source.error.message : 'The data source is not available.'} retry={() => source.refetch()} />
   }
   return <SourceContext.Provider value={source.data}>{children}</SourceContext.Provider>
+}
+
+function preferredSource(): 'auto' | 'static' {
+  return document.querySelector<HTMLMetaElement>('meta[name="nicos-catalog-source"]')?.content === 'static'
+    ? 'static'
+    : 'auto'
 }
 
 export function useSource(): ExplorerSource {

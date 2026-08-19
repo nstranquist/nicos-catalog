@@ -64,7 +64,11 @@ export class ExplorerDataError extends Error {
   }
 }
 
-export async function discoverSource(fetcher: Fetcher = (input, init) => globalThis.fetch(input, init)): Promise<ExplorerSource> {
+export async function discoverSource(
+  fetcher: Fetcher = (input, init) => globalThis.fetch(input, init),
+  preference: 'auto' | 'static' = 'auto',
+): Promise<ExplorerSource> {
+  if (preference === 'static') return discoverStaticSource(fetcher)
   try {
     const response = await fetcher('/api/v1/status', { headers: { Accept: 'application/json' } })
     const payload = await response.json() as unknown
@@ -72,12 +76,16 @@ export async function discoverSource(fetcher: Fetcher = (input, init) => globalT
     if (!response.ok || !envelope.ok || !isStatus(envelope.data)) throw envelopeError(envelope, response.status)
     return new LiveSource(fetcher, envelope.projection_mode, envelope.source_digest, envelope.data)
   } catch {
-    const response = await fetcher('/data/manifest.json', { headers: { Accept: 'application/json' } })
-    if (!response.ok) throw new ExplorerDataError('discovery_failed', 'Explorer could not find a live API or a static catalog.', response.status)
-    const manifest = await response.json() as unknown
-    if (!isManifest(manifest)) throw new ExplorerDataError('contract_mismatch', 'The static Explorer manifest is not compatible with this application.')
-    return new StaticSource(fetcher, manifest)
+    return discoverStaticSource(fetcher)
   }
+}
+
+async function discoverStaticSource(fetcher: Fetcher): Promise<ExplorerSource> {
+  const response = await fetcher('/data/manifest.json', { headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new ExplorerDataError('discovery_failed', 'Explorer could not find a live API or a static catalog.', response.status)
+  const manifest = await response.json() as unknown
+  if (!isManifest(manifest)) throw new ExplorerDataError('contract_mismatch', 'The static Explorer manifest is not compatible with this application.')
+  return new StaticSource(fetcher, manifest)
 }
 
 class LiveSource implements ExplorerSource {

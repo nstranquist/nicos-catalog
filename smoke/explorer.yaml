@@ -46,6 +46,10 @@ steps:
   - verb: console
     label: overview reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: eval
+    label: overview has no failed or third-party resource request
+    js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
+    assert: { contains: "0" }
 
   - verb: viewport
     width: 768
@@ -60,6 +64,10 @@ steps:
   - verb: console
     label: catalog reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: eval
+    label: catalog has no failed or third-party resource request
+    js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
+    assert: { contains: "0" }
 
   - verb: viewport
     width: 1440
@@ -108,6 +116,10 @@ steps:
   - verb: console
     label: graph reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: eval
+    label: graph has no failed or third-party resource request
+    js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
+    assert: { contains: "0" }
 
   - verb: viewport
     width: 2560
@@ -122,6 +134,10 @@ steps:
   - verb: console
     label: health reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: eval
+    label: health has no failed or third-party resource request
+    js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
+    assert: { contains: "0" }
   - verb: navigate
     url: ${base}/entity/service.seed-api
     label: direct dossier route
@@ -134,3 +150,7 @@ steps:
   - verb: console
     label: direct dossier reload has no JavaScript errors
     console: { reload: true, kind: js, fail_on_error: true, window: 1500ms }
+  - verb: eval
+    label: direct dossier has no failed or third-party resource request
+    js: "performance.getEntriesByType('resource').filter((entry) => new URL(entry.name).origin !== location.origin || (entry.responseStatus && entry.responseStatus >= 400)).length.toString()"
+    assert: { contains: "0" }

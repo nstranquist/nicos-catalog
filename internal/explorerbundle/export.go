@@ -26,6 +26,11 @@ type Options struct {
 	ProductVersion string
 }
 
+const (
+	liveSourceMarker   = `<meta name="nicos-catalog-source" content="live">`
+	staticSourceMarker = `<meta name="nicos-catalog-source" content="static">`
+)
+
 // Export writes a complete public bundle through a unique sibling directory.
 func Export(ctx context.Context, service *explorerapi.Service, options Options) (explorercontract.ExportReceipt, error) {
 	if err := ctx.Err(); err != nil {
@@ -186,6 +191,12 @@ func copyWeb(ctx context.Context, root string) error {
 		payload, err := fs.ReadFile(files, name)
 		if err != nil {
 			return err
+		}
+		if name == "index.html" {
+			if bytes.Count(payload, []byte(liveSourceMarker)) != 1 {
+				return fmt.Errorf("Explorer index has no unique live source marker")
+			}
+			payload = bytes.Replace(payload, []byte(liveSourceMarker), []byte(staticSourceMarker), 1)
 		}
 		return writeFile(target, payload)
 	})

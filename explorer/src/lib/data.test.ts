@@ -96,6 +96,15 @@ describe('live Explorer source', () => {
 })
 
 describe('static Explorer source', () => {
+  it('uses an explicit static preference without a failed API probe', async () => {
+    const fixture = staticFixture()
+    const fetcher = staticFetcher(fixture)
+    const source = await discoverSource(fetcher, 'static')
+    expect(source.kind).toBe('static')
+    expect(fetcher).toHaveBeenCalledWith('/data/manifest.json', expect.anything())
+    expect(fetcher).not.toHaveBeenCalledWith('/api/v1/status', expect.anything())
+  })
+
   it('verifies assets and implements catalog, search, dossier, graph, and health reads', async () => {
     const fixture = staticFixture()
     const fetcher = staticFetcher(fixture)

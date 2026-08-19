@@ -1,16 +1,52 @@
-schema_version: 1
+schema_version: 2
 product_id: product.nicos-catalog
 visibility: public
 reviewed: true
+presentation:
+    summary: A typed, local-first software catalog engine for multi-repository systems.
+    detail: Inject host providers, index a synthetic or real catalog, search it with BM25, inspect relationship graphs, and gate public projections without sending catalog data to a hosted service.
+    language: Go
+    lane: Developer platform and catalog infrastructure
+access:
+    profile: go-cli
+    primary_action:
+        kind: install
+        label: Install Nicos Catalog
+        url: https://github.com/nstranquist/nicos-catalog#install
+    repository_url: https://github.com/nstranquist/nicos-catalog
+    documentation_url: https://github.com/nstranquist/nicos-catalog#five-minute-smoke
+    feedback_url: https://github.com/nstranquist/nicos-catalog/issues/new
+    module: github.com/nstranquist/nicos-catalog
+    binary: nicos-catalog
+    smoke_argv: [go, run, ./cmd/nicos-catalog, version]
+proof:
+    claims:
+        - id: host-injected-engine
+          statement: The catalog engine accepts host-provided filesystem, policy, and projection boundaries.
+          evidence_kind: documentation
+          evidence_url: https://github.com/nstranquist/nicos-catalog#host-contract
+        - id: synthetic-smoke
+          statement: The public repository includes a five-minute synthetic-corpus smoke for index, search, graph, and drift behavior.
+          evidence_kind: test
+          evidence_url: https://github.com/nstranquist/nicos-catalog#five-minute-smoke
+    boundaries:
+        - The public engine excludes private operator telemetry, valuation data, and personal catalog records.
+        - A public source tag is separate from a formal GitHub Release and from external adoption.
 assets:
     - path: portfolio/assets/catalog-engine.png
       kind: screenshot
       alt: Nicos Catalog running inside Catalog Gallery as an independent synthetic host
       caption: The public engine proof exercises provider injection, deterministic BM25 search, typed graphs, drift checks, and the closed projection.
+      public: true
+      provenance: local-synthetic-fixture-capture
+      copyright_owner: Nico Stranquist
     - path: screenshots/demo-cli.png
       kind: screenshot
       alt: nicos-catalog demo, reindex, and clean drift on the synthetic corpus
       caption: Terminal walk of the public demo corpus.
+      public: true
+      provenance: local-synthetic-fixture-capture
+      copyright_owner: Nico Stranquist
     - path: assets/brand/nicos-catalog.svg
       kind: logo
       alt: Nicos Catalog application icon

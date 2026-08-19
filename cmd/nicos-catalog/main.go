@@ -298,14 +298,10 @@ func runCollate(ctx context.Context, hostRoot string, layout catalog.Layout, arg
 			return code
 		}
 	} else {
-		if _, err := fmt.Fprint(stdout, hostcollate.FormatReport(report)); err != nil {
-			return fail(stderr, err)
-		}
+		_, _ = fmt.Fprint(stdout, hostcollate.FormatReport(report))
 	}
 	if err != nil {
-		if _, err := fmt.Fprintf(stderr, "nicos-catalog: %v\n", err); err != nil {
-			return 1
-		}
+		_, _ = fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
 		return 1
 	}
 	return 0

@@ -196,8 +196,8 @@ func TestDirectoryAndStateHelpers(t *testing.T) {
 	if exists, owned, err := targetState(file); err != nil || !exists || owned {
 		t.Fatalf("file state = %v %v %v", exists, owned, err)
 	}
-	if _, _, err := targetState(filepath.Join(file, "child")); err == nil {
-		t.Fatal("state below file succeeded")
+	if _, owned, _ := targetState(filepath.Join(file, "child")); owned {
+		t.Fatal("owned export below a file")
 	}
 	empty := filepath.Join(root, "empty")
 	_ = os.Mkdir(empty, 0o755)

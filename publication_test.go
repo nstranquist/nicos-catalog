@@ -32,6 +32,28 @@ func TestPublicationVersionPinsAgree(t *testing.T) {
 	}
 }
 
+func TestPublicationReleaseNotesAreTimeless(t *testing.T) {
+	version := strings.TrimSpace(readPublicationFile(t, "VERSION"))
+	notes := readPublicationFile(t, "docs", "releases", version+".md")
+	firstLine, _, _ := strings.Cut(notes, "\n")
+	if want := "# Nicos Catalog " + version; firstLine != want {
+		t.Fatalf("release heading = %q, want %q", firstLine, want)
+	}
+	lower := strings.ToLower(notes)
+	for _, transient := range []string{
+		"release candidate",
+		"status on ",
+		"pending on this checkout",
+		"operator publication gates",
+		"operator must complete",
+		"public tag and github release exist",
+	} {
+		if strings.Contains(lower, transient) {
+			t.Errorf("release notes contain transient status text %q", transient)
+		}
+	}
+}
+
 func TestPublicationHasNoLocalExplorerDependencies(t *testing.T) {
 	var manifest struct {
 		Dependencies    map[string]string `json:"dependencies"`

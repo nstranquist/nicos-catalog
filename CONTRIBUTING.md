@@ -68,3 +68,7 @@ upstream or send a change back to one.
 Only an operator pushes release commits, creates a tag, creates a GitHub
 Release, or deploys a static site. A local green gate means publish-ready. It
 does not mean released or deployed.
+
+Use [the release runbook](docs/releasing.md). Keep release notes free of
+temporary status text. Record live publication evidence in a separate, dated
+review.

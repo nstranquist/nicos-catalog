@@ -158,7 +158,7 @@ layout, _ := (catalog.Layout{
 
 engine, _ := catalog.New(layout, catalog.WithProviders(myProvider))
 _, _ = engine.Reindex(ctx)
-results, _ := engine.Search("ownership graph", catalog.SearchOptions{Limit: 5})
+results, _ := engine.Search(ctx, "ownership graph", catalog.SearchOptions{Limit: 5})
 ```
 
 A provider implements one small interface:
@@ -201,9 +201,13 @@ See [the Explorer guide](docs/explorer.md),
 
 ## Release state
 
-This checkout can be build-ready before `v0.3.0` is public. A local build is
-not a release. A release is not deployment, launch, adoption, or revenue. The
-[release candidate record](docs/releases/v0.3.0.md) lists each external gate.
+`v0.3.0` is a public module release. Read the
+[release notes](docs/releases/v0.3.0.md) and the dated
+[publication review](docs/releases/v0.3.0-publication-review.md).
+
+A public module release proves distribution. It does not prove a hosted
+deployment, an independent adoption, or revenue. Maintainers must use the
+[release runbook](docs/releasing.md) for future versions.
 
 ## License
 

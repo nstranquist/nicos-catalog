@@ -7,7 +7,7 @@ status: shipped
 persona: Engineers and small platform teams operating a growing multi-repository software ecosystem.
 jtbd: Make software ownership, dependencies, evidence, and drift legible without adopting a heavyweight hosted service catalog.
 pricing: Free Apache-2.0 local engine and CLI.
-launch: built
+launch: launched
 license: Apache-2.0
 tags:
   - go

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- CLI commands now fail when a successful human-readable result cannot be
+  written to standard output.
+- GitHub-local collation now restricts new and existing snapshot directories
+  and files to owner-only permissions on POSIX systems.
+- The linter now checks Explorer and host-collation code without broad
+  package-level suppressions.
+- Release notes are now timeless. A separate runbook and publication review
+  keep mutable release state out of the GitHub Release body.
+
 ## v0.3.0 — 2026-08-20
 
 ### Added

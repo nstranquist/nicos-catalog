@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## v0.3.0 — 2026-08-20
+
 ### Added
 
 - **Nicos Catalog Explorer**, an embedded read-only web application with

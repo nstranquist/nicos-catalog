@@ -162,12 +162,12 @@ func validateProjectedEntity(entity explorercontract.Entity) error {
 
 func safeText(field, value string) error {
 	if err := catalog.ScanPublicText(field, value); err != nil {
-		return fmt.Errorf("Explorer projection rejected unsafe content")
+		return fmt.Errorf("explorer projection rejected unsafe content")
 	}
 	lower := strings.ToLower(value)
 	for _, marker := range []string{".internal", ".localhost", ".localdomain", "private-host-canary"} {
 		if strings.Contains(lower, marker) {
-			return fmt.Errorf("Explorer projection rejected unsafe content")
+			return fmt.Errorf("explorer projection rejected unsafe content")
 		}
 	}
 	return nil

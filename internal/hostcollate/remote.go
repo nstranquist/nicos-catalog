@@ -108,6 +108,7 @@ func ReadGitConfigRemotes(path string) ([]Remote, error) {
 }
 
 func parseGitConfigFile(path string) (gitConfig, error) {
+	//nolint:gosec // The caller supplies a discovered or explicitly configured Git config path.
 	file, err := os.Open(path)
 	if err != nil {
 		return gitConfig{}, err

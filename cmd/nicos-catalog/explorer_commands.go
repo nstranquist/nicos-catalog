@@ -44,13 +44,19 @@ func runInit(args []string, globalRoot string, jsonOutput bool, stdout, stderr i
 		return fail(stderr, err)
 	}
 	for _, path := range receipt.Written {
-		_, _ = fmt.Fprintf(stdout, "written\t%s\n", path)
+		if _, err := fmt.Fprintf(stdout, "written\t%s\n", path); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	for _, path := range receipt.Present {
-		_, _ = fmt.Fprintf(stdout, "present\t%s\n", path)
+		if _, err := fmt.Fprintf(stdout, "present\t%s\n", path); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	if receipt.DryRun {
-		_, _ = fmt.Fprintf(stdout, "dry-run: %d file(s) planned\n", len(receipt.Planned))
+		if _, err := fmt.Fprintf(stdout, "dry-run: %d file(s) planned\n", len(receipt.Planned)); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	return 0
 }
@@ -86,7 +92,9 @@ func runServe(ctx context.Context, engine *catalog.Engine, args []string, jsonOu
 					return fmt.Errorf("could not write serve receipt")
 				}
 			} else {
-				_, _ = fmt.Fprintf(stdout, "Explorer: %s\nsource: %s\n", ready.URL, service.Dataset().SourceDigest)
+				if _, err := fmt.Fprintf(stdout, "Explorer: %s\nsource: %s\n", ready.URL, service.Dataset().SourceDigest); err != nil {
+					return fmt.Errorf("write Explorer address: %w", err)
+				}
 			}
 			if *open {
 				return exploreropen.Open(ctx, ready.URL)
@@ -135,7 +143,9 @@ func runExportExplorer(ctx context.Context, engine *catalog.Engine, layout catal
 	if err != nil {
 		return fail(stderr, err)
 	}
-	_, _ = fmt.Fprintf(stdout, "exported %d entities and %d edges across %d file(s)\n", receipt.EntityCount, receipt.EdgeCount, len(receipt.Files))
+	if _, err := fmt.Fprintf(stdout, "exported %d entities and %d edges across %d file(s)\n", receipt.EntityCount, receipt.EdgeCount, len(receipt.Files)); err != nil {
+		return fail(stderr, err)
+	}
 	return 0
 }
 
@@ -177,6 +187,7 @@ func runDemoUI(ctx context.Context, open, jsonOutput bool, stdout, stderr io.Wri
 		return fail(stderr, err)
 	}
 	defer func() { _ = os.RemoveAll(root) }()
+	//nolint:gosec // The private demo directory needs owner execute permission.
 	if err := os.Chmod(root, 0o700); err != nil {
 		return fail(stderr, err)
 	}
@@ -211,7 +222,9 @@ func runDemoUI(ctx context.Context, open, jsonOutput bool, stdout, stderr io.Wri
 					return fmt.Errorf("could not write demo receipt")
 				}
 			} else {
-				_, _ = fmt.Fprintf(stdout, "Nicos Catalog synthetic Explorer: %s\n", ready.URL)
+				if _, err := fmt.Fprintf(stdout, "Nicos Catalog synthetic Explorer: %s\n", ready.URL); err != nil {
+					return fmt.Errorf("write Explorer address: %w", err)
+				}
 			}
 			if open {
 				return exploreropen.Open(ctx, ready.URL)

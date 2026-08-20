@@ -53,6 +53,7 @@ func EnrollmentGaps(clones []Clone, manifestPath string) ([]Item, error) {
 }
 
 func loadEnrolledIDs(path string) (map[string]struct{}, error) {
+	//nolint:gosec // The operator explicitly supplies the enrollment manifest path.
 	payload, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read enroll manifest: %w", err)
@@ -90,10 +91,12 @@ func registeredIDs(clone Clone) []string {
 		case RegistrationProductYAML:
 			payload, err := os.ReadFile(reg.Path)
 			if err != nil {
+				//nolint:nilerr // Registration discovery skips unreadable optional manifests.
 				continue
 			}
 			var manifest productManifest
 			if yaml.Unmarshal(payload, &manifest) != nil {
+				//nolint:nilerr // Registration discovery skips malformed optional manifests.
 				continue
 			}
 			add(manifest.ID)
@@ -121,14 +124,17 @@ func corpusEntityIDs(dir string) []string {
 		default:
 			return nil
 		}
+		//nolint:gosec // WalkDir supplies a path confined to the discovered corpus.
 		payload, readErr := os.ReadFile(path)
 		if readErr != nil {
+			//nolint:nilerr // The best-effort corpus ID scan skips unreadable optional files.
 			return nil
 		}
 		var manifest struct {
 			ID string `yaml:"id"`
 		}
 		if yaml.Unmarshal(payload, &manifest) != nil {
+			//nolint:nilerr // The best-effort corpus ID scan skips malformed optional files.
 			return nil
 		}
 		if id := strings.TrimSpace(manifest.ID); id != "" {

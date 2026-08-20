@@ -16,6 +16,7 @@ import (
 
 const maxHTTPResponseBytes = 1 << 20
 
+// HandlerConfig defines the immutable inputs for one Explorer HTTP handler.
 type HandlerConfig struct {
 	ProductVersion string
 	AllowedHosts   []string

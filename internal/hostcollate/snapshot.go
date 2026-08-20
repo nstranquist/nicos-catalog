@@ -30,8 +30,12 @@ func SnapshotPath(cacheDir string) string {
 
 // WriteSnapshot persists report next to derived catalog state.
 func WriteSnapshot(cacheDir string, report Report, records []catalog.Record) (Snapshot, error) {
-	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
 		return Snapshot{}, fmt.Errorf("create snapshot dir: %w", err)
+	}
+	//nolint:gosec // A private directory needs owner execute permission.
+	if err := os.Chmod(cacheDir, 0o700); err != nil {
+		return Snapshot{}, fmt.Errorf("secure snapshot dir: %w", err)
 	}
 	copied := append([]catalog.Record(nil), records...)
 	if copied == nil {
@@ -49,8 +53,11 @@ func WriteSnapshot(cacheDir string, report Report, records []catalog.Record) (Sn
 	if err != nil {
 		return Snapshot{}, fmt.Errorf("encode snapshot: %w", err)
 	}
-	if err := os.WriteFile(path, append(payload, '\n'), 0o644); err != nil {
+	if err := os.WriteFile(path, append(payload, '\n'), 0o600); err != nil {
 		return Snapshot{}, fmt.Errorf("write snapshot: %w", err)
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		return Snapshot{}, fmt.Errorf("secure snapshot: %w", err)
 	}
 	return snap, nil
 }
@@ -58,6 +65,7 @@ func WriteSnapshot(cacheDir string, report Report, records []catalog.Record) (Sn
 // ReadSnapshot loads the last explicit refresh without walking roots.
 func ReadSnapshot(cacheDir string) (Snapshot, error) {
 	path := SnapshotPath(cacheDir)
+	//nolint:gosec // SnapshotPath confines the read to the explicit cache directory.
 	payload, err := os.ReadFile(path)
 	if err != nil {
 		return Snapshot{}, fmt.Errorf("read snapshot: %w", err)

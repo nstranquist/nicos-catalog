@@ -280,6 +280,7 @@ func remotesForClone(clonePath, home string) ([]Remote, error) {
 		return nil, err
 	}
 	if len(loaded.remotes) == 0 {
+		//nolint:gosec // resolveGitDir supplies the Git metadata directory.
 		common, readErr := os.ReadFile(filepath.Join(gitDir, "commondir"))
 		if readErr != nil && !os.IsNotExist(readErr) {
 			return nil, fmt.Errorf("read commondir %s: %w", gitDir, readErr)
@@ -311,15 +312,18 @@ func resolveGitDir(clonePath string) (string, error) {
 		if os.IsNotExist(err) && isGitDir(clonePath) {
 			return clonePath, nil
 		}
+		//nolint:nilerr // An unreadable or invalid .git marker is not a usable checkout.
 		return "", nil
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
 		target, evalErr := filepath.EvalSymlinks(gitPath)
 		if evalErr != nil {
+			//nolint:nilerr // A broken .git symlink is not a usable checkout.
 			return "", nil
 		}
 		targetInfo, statErr := os.Lstat(target)
 		if statErr != nil {
+			//nolint:nilerr // A vanished .git symlink target is not a usable checkout.
 			return "", nil
 		}
 		if targetInfo.IsDir() {
@@ -340,6 +344,7 @@ func resolveGitDir(clonePath string) (string, error) {
 }
 
 func gitDirFromFile(gitFile, relativeTo string) (string, error) {
+	//nolint:gosec // resolveGitDir supplies the discovered .git file path.
 	payload, err := os.ReadFile(gitFile)
 	if err != nil {
 		return "", fmt.Errorf("read gitfile %s: %w", gitFile, err)
@@ -414,8 +419,10 @@ func corpusHasEntities(dir string) bool {
 		}
 		switch strings.ToLower(filepath.Ext(entry.Name())) {
 		case ".yaml", ".yml", ".json", ".md":
+			//nolint:gosec // WalkDir supplies a path confined to the discovered corpus.
 			payload, readErr := os.ReadFile(path)
 			if readErr != nil {
+				//nolint:nilerr // Consent discovery skips unreadable optional corpus files.
 				return nil
 			}
 			if looksLikeEntity(string(payload)) {

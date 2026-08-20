@@ -33,13 +33,15 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	cache := global.String("cache", ".nicos-catalog/cache", "derived index directory")
 	sidecars := global.String("sidecars", ".nicos-catalog/sidecars", "host-owned sidecar data directory")
 	jsonOutput := global.Bool("json", false, "emit machine-readable JSON")
-	global.Usage = func() { printUsage(stderr) }
+	global.Usage = func() { _ = printUsage(stderr) }
 	if err := global.Parse(args); err != nil {
 		return 2
 	}
 	remaining := global.Args()
 	if len(remaining) == 0 || remaining[0] == "help" || remaining[0] == "--help" || remaining[0] == "-h" {
-		printUsage(stdout)
+		if err := printUsage(stdout); err != nil {
+			return fail(stderr, err)
+		}
 		return 0
 	}
 	command := remaining[0]
@@ -67,13 +69,15 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	switch command {
 	case "validate":
 		report, err := engine.Validate(ctx)
-		return reportResult(stdout, stderr, *jsonOutput, report, err, func() {
-			_, _ = fmt.Fprintf(stdout, "valid: %d entities from %d provider(s); %d warning(s)\n", report.EntityCount, report.ProviderCount, len(report.Warnings))
+		return reportResult(stdout, stderr, *jsonOutput, report, err, func() error {
+			_, writeErr := fmt.Fprintf(stdout, "valid: %d entities from %d provider(s); %d warning(s)\n", report.EntityCount, report.ProviderCount, len(report.Warnings))
+			return writeErr
 		})
 	case "reindex":
 		report, err := engine.Reindex(ctx)
-		return reportResult(stdout, stderr, *jsonOutput, report, err, func() {
-			_, _ = fmt.Fprintf(stdout, "indexed %d entities at %s\n", report.EntityCount, report.IndexPath)
+		return reportResult(stdout, stderr, *jsonOutput, report, err, func() error {
+			_, writeErr := fmt.Fprintf(stdout, "indexed %d entities at %s\n", report.EntityCount, report.IndexPath)
+			return writeErr
 		})
 	case "search":
 		return runSearch(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
@@ -81,12 +85,13 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return runGraph(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	case "drift":
 		report, err := engine.Drift(ctx)
-		code := reportResult(stdout, stderr, *jsonOutput, report, err, func() {
+		code := reportResult(stdout, stderr, *jsonOutput, report, err, func() error {
 			if report.Changed {
-				_, _ = fmt.Fprintf(stdout, "drift: %s\n", report.Reason)
-			} else {
-				_, _ = fmt.Fprintln(stdout, "drift: clean")
+				_, writeErr := fmt.Fprintf(stdout, "drift: %s\n", report.Reason)
+				return writeErr
 			}
+			_, writeErr := fmt.Fprintln(stdout, "drift: clean")
+			return writeErr
 		})
 		if code == 0 && report.Changed {
 			return 3
@@ -106,7 +111,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return runMCP(ctx, engine, commandArgs, *jsonOutput, stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "unknown command %q\n\n", command)
-		printUsage(stderr)
+		_ = printUsage(stderr)
 		return 2
 	}
 }
@@ -125,7 +130,9 @@ func runVersion(args []string, jsonOutput bool, stdout, stderr io.Writer) int {
 	if jsonOutput {
 		return writeJSON(stdout, stderr, info)
 	}
-	_, _ = fmt.Fprintln(stdout, info.Version)
+	if _, err := fmt.Fprintln(stdout, info.Version); err != nil {
+		return fail(stderr, err)
+	}
 	return 0
 }
 
@@ -146,7 +153,9 @@ func runSearch(ctx context.Context, engine *catalog.Engine, args []string, jsonO
 		return writeJSON(stdout, stderr, results)
 	}
 	for _, result := range results {
-		_, _ = fmt.Fprintf(stdout, "%.3f\t%s\t%s\n", result.Score, result.Entity.ID, result.Entity.Name)
+		if _, err := fmt.Fprintf(stdout, "%.3f\t%s\t%s\n", result.Score, result.Entity.ID, result.Entity.Name); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	return 0
 }
@@ -169,7 +178,9 @@ func runGraph(ctx context.Context, engine *catalog.Engine, args []string, jsonOu
 	if *format != "mermaid" {
 		return fail(stderr, fmt.Errorf("unsupported graph format %q", *format))
 	}
-	_, _ = fmt.Fprint(stdout, graph.Mermaid())
+	if _, err := fmt.Fprint(stdout, graph.Mermaid()); err != nil {
+		return fail(stderr, err)
+	}
 	return 0
 }
 
@@ -185,14 +196,17 @@ func runReconcile(ctx context.Context, engine *catalog.Engine, args []string, js
 		mode = catalog.ReconcileApply
 	}
 	report, err := engine.Reconcile(ctx, mode)
-	return reportResult(stdout, stderr, jsonOutput, report, err, func() {
+	return reportResult(stdout, stderr, jsonOutput, report, err, func() error {
 		switch {
 		case report.Applied:
-			_, _ = fmt.Fprintln(stdout, "reconciled: index rebuilt")
+			_, writeErr := fmt.Fprintln(stdout, "reconciled: index rebuilt")
+			return writeErr
 		case report.Drift.Changed:
-			_, _ = fmt.Fprintln(stdout, "reconcile needed; rerun with --apply")
+			_, writeErr := fmt.Fprintln(stdout, "reconcile needed; rerun with --apply")
+			return writeErr
 		default:
-			_, _ = fmt.Fprintln(stdout, "reconcile: clean")
+			_, writeErr := fmt.Fprintln(stdout, "reconcile: clean")
+			return writeErr
 		}
 	})
 }
@@ -221,7 +235,9 @@ func runProject(ctx context.Context, engine *catalog.Engine, args []string, json
 		return writeJSON(stdout, stderr, projection)
 	}
 	for _, item := range projection.Items {
-		_, _ = fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Kind, item.Name)
+		if _, err := fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Kind, item.Name); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	return 0
 }
@@ -298,7 +314,9 @@ func runCollate(ctx context.Context, hostRoot string, layout catalog.Layout, arg
 			return code
 		}
 	} else {
-		_, _ = fmt.Fprint(stdout, hostcollate.FormatReport(report))
+		if _, writeErr := fmt.Fprint(stdout, hostcollate.FormatReport(report)); writeErr != nil {
+			return fail(stderr, writeErr)
+		}
 	}
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "nicos-catalog: %v\n", err)
@@ -358,9 +376,13 @@ func runDemo(ctx context.Context, args []string, jsonOutput bool, stdout, stderr
 	if jsonOutput {
 		return writeJSON(stdout, stderr, report)
 	}
-	_, _ = fmt.Fprintf(stdout, "Nicos Catalog demo: %d synthetic entities, %d public items\n", reindexed.EntityCount, len(projection.Items))
+	if _, err := fmt.Fprintf(stdout, "Nicos Catalog demo: %d synthetic entities, %d public items\n", reindexed.EntityCount, len(projection.Items)); err != nil {
+		return fail(stderr, err)
+	}
 	for _, result := range results {
-		_, _ = fmt.Fprintf(stdout, "  %.3f  %s — %s\n", result.Score, result.Entity.ID, result.Entity.Name)
+		if _, err := fmt.Fprintf(stdout, "  %.3f  %s — %s\n", result.Score, result.Entity.ID, result.Entity.Name); err != nil {
+			return fail(stderr, err)
+		}
 	}
 	return 0
 }
@@ -388,14 +410,16 @@ func splitCSV(raw string) []string {
 	return values
 }
 
-func reportResult[T any](stdout, stderr io.Writer, jsonOutput bool, report T, err error, human func()) int {
+func reportResult[T any](stdout, stderr io.Writer, jsonOutput bool, report T, err error, human func() error) int {
 	if err != nil {
 		return fail(stderr, err)
 	}
 	if jsonOutput {
 		return writeJSON(stdout, stderr, report)
 	}
-	human()
+	if err := human(); err != nil {
+		return fail(stderr, err)
+	}
 	return 0
 }
 
@@ -416,9 +440,9 @@ func fail(stderr io.Writer, err error) int {
 	return 1
 }
 
-func printUsage(w io.Writer) {
+func printUsage(w io.Writer) error {
 	name := filepath.Base(os.Args[0])
-	_, _ = fmt.Fprintf(w, `Nicos Catalog — typed software-catalog engine
+	_, err := fmt.Fprintf(w, `Nicos Catalog — typed software-catalog engine
 
 Usage:
   %s [layout flags] <command> [command flags]
@@ -447,4 +471,5 @@ Layout flags:
   --sidecars PATH   host-owned sidecar directory
   --json            emit JSON
 `, name, catalog.Version())
+	return err
 }

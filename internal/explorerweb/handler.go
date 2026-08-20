@@ -60,6 +60,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodGet {
+		//nolint:gosec // The payload is read only from the embedded build asset filesystem.
 		_, _ = w.Write(payload)
 	}
 }

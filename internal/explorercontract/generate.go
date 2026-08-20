@@ -145,15 +145,18 @@ func WriteGenerated(root string, check bool) error {
 	}
 	for path, want := range files {
 		if check {
+			//nolint:gosec // The map contains only fixed repository-owned generated paths.
 			got, readErr := os.ReadFile(path)
 			if readErr != nil || !bytes.Equal(got, want) {
 				return fmt.Errorf("generated Explorer contract differs: run go generate ./internal/explorercontract")
 			}
 			continue
 		}
+		//nolint:gosec // Checked-in generated directories need repository search permission.
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return err
 		}
+		//nolint:gosec // Checked-in generated contracts must be repository-readable.
 		if err := os.WriteFile(path, want, 0o644); err != nil {
 			return err
 		}

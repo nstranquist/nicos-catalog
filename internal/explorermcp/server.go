@@ -48,14 +48,16 @@ type toolResult struct {
 	IsError bool          `json:"isError,omitempty"`
 }
 
+// Server exposes one immutable Explorer projection through bounded MCP tools.
 type Server struct {
 	service        *explorerapi.Service
 	productVersion string
 }
 
+// New returns a read-only MCP server for service.
 func New(service *explorerapi.Service, productVersion string) (*Server, error) {
 	if service == nil {
-		return nil, fmt.Errorf("Explorer service is required")
+		return nil, fmt.Errorf("explorer service is required")
 	}
 	return &Server{service: service, productVersion: productVersion}, nil
 }
@@ -160,7 +162,7 @@ func (s *Server) call(name string, raw json.RawMessage) (toolResult, error) {
 			args.Limit = 20
 		}
 		if args.Limit > 20 {
-			return toolResult{}, fmt.Errorf("Search is limited to 20 results.")
+			return toolResult{}, fmt.Errorf("search is limited to 20 results")
 		}
 		page, meta, err := s.service.Search(explorerapi.SearchOptions{Query: args.Query, Kinds: args.Kind, Statuses: args.Status, Surfaces: args.Surface, Tags: args.Tag, Limit: args.Limit})
 		if err != nil {
@@ -207,7 +209,7 @@ func (s *Server) call(name string, raw json.RawMessage) (toolResult, error) {
 			args.Limit = 50
 		}
 		if args.Limit > 50 {
-			return toolResult{}, fmt.Errorf("Health is limited to 50 findings.")
+			return toolResult{}, fmt.Errorf("health is limited to 50 findings")
 		}
 		report, meta, err := s.service.Health(args.Severity, args.Limit)
 		if err != nil {
@@ -215,14 +217,14 @@ func (s *Server) call(name string, raw json.RawMessage) (toolResult, error) {
 		}
 		value = map[string]any{"data": report, "meta": meta}
 	default:
-		return toolResult{}, fmt.Errorf("Unknown read-only catalog tool.")
+		return toolResult{}, fmt.Errorf("unknown read-only catalog tool")
 	}
 	payload, err := json.Marshal(value)
 	if err != nil {
-		return toolResult{}, fmt.Errorf("Tool result could not be encoded.")
+		return toolResult{}, fmt.Errorf("tool result could not be encoded")
 	}
 	if len(payload) > maxResultBytes {
-		return toolResult{}, fmt.Errorf("Tool result exceeds 64 KiB; narrow the request.")
+		return toolResult{}, fmt.Errorf("tool result exceeds the 64 KiB limit")
 	}
 	return toolResult{Content: []toolContent{{Type: "text", Text: string(payload)}}}, nil
 }

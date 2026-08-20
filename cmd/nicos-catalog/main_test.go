@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,12 @@ import (
 
 	catalog "github.com/nstranquist/nicos-catalog"
 )
+
+var errRejectedWrite = errors.New("write rejected by test")
+
+type rejectingWriter struct{}
+
+func (rejectingWriter) Write([]byte) (int, error) { return 0, errRejectedWrite }
 
 func TestVersionExpectation(t *testing.T) {
 	var stdout, stderr bytes.Buffer
@@ -103,6 +110,54 @@ func TestUnknownCommandExitsTwo(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := run(context.Background(), []string{"no-such-command"}, &stdout, &stderr); code != 2 {
 		t.Fatalf("run returned %d, want 2", code)
+	}
+}
+
+func TestHumanCommandsFailWhenStdoutFails(t *testing.T) {
+	bad := rejectingWriter{}
+	var stderr bytes.Buffer
+	assertFailure := func(name string, args ...string) {
+		t.Helper()
+		stderr.Reset()
+		if code := run(context.Background(), args, bad, &stderr); code != 1 {
+			t.Fatalf("%s write failure = %d, want 1; stderr = %q", name, code, stderr.String())
+		}
+		if !strings.Contains(stderr.String(), errRejectedWrite.Error()) {
+			t.Fatalf("%s stderr = %q", name, stderr.String())
+		}
+	}
+	assertFailure("help", "help")
+	assertFailure("version", "version")
+	assertFailure("init", "init", "--root", t.TempDir(), "--dry-run")
+	assertFailure("demo", "demo")
+	assertFailure("demo UI", "demo", "--ui")
+
+	root := writeDemoCorpus(t)
+	if code := run(context.Background(), []string{"--root", root, "reindex"}, &bytes.Buffer{}, &stderr); code != 0 {
+		t.Fatalf("reindex = %d: %s", code, stderr.String())
+	}
+	assertFailure("validate", "--root", root, "validate")
+	assertFailure("reindex", "--root", root, "reindex")
+	assertFailure("search", "--root", root, "search", "Beta")
+	assertFailure("graph", "--root", root, "graph")
+	assertFailure("drift", "--root", root, "drift")
+	assertFailure("reconcile", "--root", root, "reconcile")
+	assertFailure("project", "--root", root, "project")
+	exportRoot, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertFailure("export", "--root", root, "export", "explorer", "--out", filepath.Join(exportRoot, "site"), "--visibility", "public")
+	assertFailure("serve", "--root", root, "serve")
+
+	collateRoot := t.TempDir()
+	layout, err := catalog.DefaultLayout(collateRoot).Resolve(collateRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stderr.Reset()
+	if code := runCollate(context.Background(), collateRoot, layout, nil, false, bad, &stderr); code != 1 {
+		t.Fatalf("collate write failure = %d, want 1", code)
 	}
 }
 

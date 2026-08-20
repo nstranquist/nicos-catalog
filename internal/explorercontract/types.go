@@ -15,10 +15,13 @@ const (
 type ProjectionMode string
 
 const (
-	ProjectionLocal  ProjectionMode = "local"
+	// ProjectionLocal retains local-only fields for a loopback Explorer.
+	ProjectionLocal ProjectionMode = "local"
+	// ProjectionPublic applies the closed public projection before transport.
 	ProjectionPublic ProjectionMode = "public"
 )
 
+// Valid reports whether m is a supported projection mode.
 func (m ProjectionMode) Valid() bool { return m == ProjectionLocal || m == ProjectionPublic }
 
 // Meta makes truncation and pagination explicit on every response.
@@ -123,8 +126,11 @@ type EntityDetail struct {
 type GraphMode string
 
 const (
-	GraphAggregate    GraphMode = "aggregate"
-	GraphRegion       GraphMode = "region"
+	// GraphAggregate returns group-level counts and relationships.
+	GraphAggregate GraphMode = "aggregate"
+	// GraphRegion returns one bounded aggregate region.
+	GraphRegion GraphMode = "region"
+	// GraphNeighborhood returns a bounded entity neighborhood.
 	GraphNeighborhood GraphMode = "neighborhood"
 )
 
@@ -132,7 +138,9 @@ const (
 type GraphGroup string
 
 const (
-	GroupKind    GraphGroup = "kind"
+	// GroupKind aggregates entities by kind.
+	GroupKind GraphGroup = "kind"
+	// GroupSurface aggregates entities by product surface.
 	GroupSurface GraphGroup = "surface"
 )
 
@@ -176,9 +184,12 @@ type GraphPage struct {
 type HealthSeverity string
 
 const (
-	HealthError   HealthSeverity = "error"
+	// HealthError identifies a finding that makes the health report fail.
+	HealthError HealthSeverity = "error"
+	// HealthWarning identifies a non-fatal risk that needs attention.
 	HealthWarning HealthSeverity = "warning"
-	HealthInfo    HealthSeverity = "info"
+	// HealthInfo identifies an informational finding.
+	HealthInfo HealthSeverity = "info"
 )
 
 // HealthFinding never carries a path, raw payload, or rejected value.

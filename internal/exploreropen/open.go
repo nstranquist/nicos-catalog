@@ -12,9 +12,11 @@ import (
 )
 
 var startCommand = func(ctx context.Context, name string, args ...string) error {
+	//nolint:gosec // Command allowlists the launcher and validate restricts the URL to loopback.
 	return exec.CommandContext(ctx, name, args...).Start()
 }
 
+// Open starts the platform browser for a validated loopback Explorer URL.
 func Open(ctx context.Context, rawURL string) error {
 	if err := validate(rawURL); err != nil {
 		return err

@@ -67,6 +67,7 @@ func EmitRecords(ctx context.Context, item Item, clone Clone) ([]catalog.Record,
 }
 
 func emitProductYAML(item Item, path string) (*catalog.Record, error) {
+	//nolint:gosec // Registration discovery supplies the consent-manifest path.
 	payload, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read product manifest %s: %w", path, err)

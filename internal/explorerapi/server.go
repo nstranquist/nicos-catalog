@@ -13,11 +13,13 @@ import (
 	"github.com/nstranquist/nicos-catalog/internal/explorercontract"
 )
 
+// Ready describes the bound loopback server after it can accept requests.
 type Ready struct {
 	URL     string
 	Receipt explorercontract.ServeReceipt
 }
 
+// ServerConfig defines the loopback listener and read-only Explorer handler.
 type ServerConfig struct {
 	Listen         string
 	ProductVersion string
@@ -67,7 +69,8 @@ func RunServer(ctx context.Context, config ServerConfig) error {
 	if err := ValidateListenAddress(ctx, config.Listen); err != nil {
 		return err
 	}
-	listener, err := net.Listen("tcp", config.Listen)
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", config.Listen)
 	if err != nil {
 		return err
 	}
@@ -94,7 +97,7 @@ func RunServer(ctx context.Context, config ServerConfig) error {
 	go func() {
 		select {
 		case <-ctx.Done():
-			shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 			defer cancel()
 			_ = server.Shutdown(shutdownCtx)
 		case <-done:

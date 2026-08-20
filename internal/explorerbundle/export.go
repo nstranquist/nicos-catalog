@@ -20,6 +20,7 @@ import (
 	"github.com/nstranquist/nicos-catalog/internal/explorercontract"
 )
 
+// Options defines one deterministic public static Explorer export.
 type Options struct {
 	OutDir         string
 	ForbiddenRoots []string
@@ -51,6 +52,7 @@ func Export(ctx context.Context, service *explorerapi.Service, options Options) 
 		return explorercontract.ExportReceipt{}, fmt.Errorf("output directory is not an existing Explorer export")
 	}
 	parent := filepath.Dir(out)
+	//nolint:gosec // Public static export directories need search permission.
 	if err := os.MkdirAll(parent, 0o755); err != nil {
 		return explorercontract.ExportReceipt{}, err
 	}
@@ -58,6 +60,7 @@ func Export(ctx context.Context, service *explorerapi.Service, options Options) 
 	if err != nil {
 		return explorercontract.ExportReceipt{}, err
 	}
+	//nolint:gosec // The private temporary directory needs owner execute permission.
 	if err := os.Chmod(temp, 0o700); err != nil {
 		_ = os.RemoveAll(temp)
 		return explorercontract.ExportReceipt{}, err
@@ -186,6 +189,7 @@ func copyWeb(ctx context.Context, root string) error {
 		}
 		target := filepath.Join(root, filepath.FromSlash(name))
 		if entry.IsDir() {
+			//nolint:gosec // Exported static directories need web-server search permission.
 			return os.MkdirAll(target, 0o755)
 		}
 		payload, err := fs.ReadFile(files, name)
@@ -194,7 +198,7 @@ func copyWeb(ctx context.Context, root string) error {
 		}
 		if name == "index.html" {
 			if bytes.Count(payload, []byte(liveSourceMarker)) != 1 {
-				return fmt.Errorf("Explorer index has no unique live source marker")
+				return fmt.Errorf("explorer index has no unique live source marker")
 			}
 			payload = bytes.Replace(payload, []byte(liveSourceMarker), []byte(staticSourceMarker), 1)
 		}
@@ -271,12 +275,15 @@ func targetState(target string) (exists, owned bool, err error) {
 	if len(entries) == 0 {
 		return true, true, nil
 	}
+	//nolint:gosec // validateTarget confines target; the manifest suffix is fixed.
 	payload, err := os.ReadFile(filepath.Join(target, "data", "manifest.json"))
 	if err != nil {
+		//nolint:nilerr // An unreadable manifest cannot prove ownership, so fail closed.
 		return true, false, nil
 	}
 	var manifest explorercontract.Manifest
 	if json.Unmarshal(payload, &manifest) != nil {
+		//nolint:nilerr // A malformed manifest cannot prove ownership, so fail closed.
 		return true, false, nil
 	}
 	owned = manifest.Generator == explorercontract.StaticGenerator && manifest.SchemaVersion == explorercontract.SchemaVersion && manifest.ProjectionMode == explorercontract.ProjectionPublic
@@ -320,10 +327,12 @@ func equalTrees(left, right string) (bool, error) {
 		if leftFiles[i] != rightFiles[i] {
 			return false, nil
 		}
+		//nolint:gosec // relativeFiles produced this path from the compared tree.
 		a, err := os.ReadFile(filepath.Join(left, filepath.FromSlash(leftFiles[i])))
 		if err != nil {
 			return false, err
 		}
+		//nolint:gosec // relativeFiles produced this path from the compared tree.
 		b, err := os.ReadFile(filepath.Join(right, filepath.FromSlash(rightFiles[i])))
 		if err != nil {
 			return false, err
@@ -361,9 +370,11 @@ func sameOrWithin(parent, child string) bool {
 }
 
 func writeFile(path string, payload []byte) error {
+	//nolint:gosec // Exported static assets must be readable by a web server.
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
+	//nolint:gosec // Exported static assets must be readable by a web server.
 	return os.WriteFile(path, payload, 0o644)
 }
 func marshalStable(value any) ([]byte, error) {

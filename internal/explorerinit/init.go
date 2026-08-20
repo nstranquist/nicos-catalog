@@ -13,6 +13,7 @@ import (
 	"github.com/nstranquist/nicos-catalog/internal/explorercontract"
 )
 
+// Options defines one safe starter-corpus initialization.
 type Options struct {
 	Root     string
 	Template string
@@ -29,6 +30,7 @@ func systemFileOps() fileOps {
 	return fileOps{
 		mkdirAll: os.MkdirAll,
 		openExclusive: func(path string) (*os.File, error) {
+			//nolint:gosec // safeTarget confines the path; starter corpus files are public.
 			return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 		},
 		remove: os.Remove,
@@ -73,6 +75,7 @@ func run(options Options, filesys fileOps) (explorercontract.InitReceipt, error)
 		if err != nil {
 			return receipt, err
 		}
+		//nolint:gosec // safeTarget confines the read to a fixed starter-corpus path.
 		payload, err := os.ReadFile(target)
 		switch {
 		case err == nil && bytes.Equal(payload, files[rel]):

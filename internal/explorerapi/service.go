@@ -16,8 +16,11 @@ import (
 )
 
 const (
+	// MaxGraphNodes is the largest node set that one service response can carry.
 	MaxGraphNodes = 500
+	// MaxGraphEdges is the largest edge set that one service response can carry.
 	MaxGraphEdges = 1500
+	// MaxGraphDepth is the largest supported neighborhood traversal depth.
 	MaxGraphDepth = 2
 )
 
@@ -100,8 +103,10 @@ func NewService(dataset explorercontract.Dataset) (*Service, error) {
 	return s, nil
 }
 
+// Dataset returns the immutable projection that backs this service.
 func (s *Service) Dataset() explorercontract.Dataset { return s.dataset }
 
+// Status returns bounded build and corpus counts for the current projection.
 func (s *Service) Status(productVersion string) explorercontract.Status {
 	return explorercontract.Status{
 		ProductVersion: productVersion, APISchema: explorercontract.SchemaVersion,
@@ -109,6 +114,7 @@ func (s *Service) Status(productVersion string) explorercontract.Status {
 	}
 }
 
+// ListOptions defines bounded filters, ordering, and pagination for List.
 type ListOptions struct {
 	Query                   string
 	Kinds, Statuses         []string
@@ -117,6 +123,7 @@ type ListOptions struct {
 	Cursor, Sort, Direction string
 }
 
+// List returns one deterministic page of projected entities.
 func (s *Service) List(options ListOptions) (explorercontract.EntityPage, explorercontract.Meta, error) {
 	if len(options.Query) > 256 {
 		return explorercontract.EntityPage{}, explorercontract.Meta{}, usageError("query_too_long", "The query must be 256 bytes or less.")
@@ -167,7 +174,7 @@ func (s *Service) List(options ListOptions) (explorercontract.EntityPage, explor
 		left, right := sortValue(items[i], sortKey), sortValue(items[j], sortKey)
 		less := left < right || (left == right && items[i].ID < items[j].ID)
 		if direction == "desc" {
-			return !less && !(left == right && items[i].ID == items[j].ID)
+			return left > right || (left == right && items[i].ID > items[j].ID)
 		}
 		return less
 	})
@@ -187,6 +194,7 @@ func (s *Service) List(options ListOptions) (explorercontract.EntityPage, explor
 	return explorercontract.EntityPage{Items: pageItems}, meta, nil
 }
 
+// SearchOptions defines bounded filters and pagination for Search.
 type SearchOptions struct {
 	Query           string
 	Kinds, Statuses []string
@@ -194,6 +202,7 @@ type SearchOptions struct {
 	Limit           int
 }
 
+// Search returns one deterministic BM25-ranked page from projected fields.
 func (s *Service) Search(options SearchOptions) (explorercontract.SearchPage, explorercontract.Meta, error) {
 	query := strings.TrimSpace(options.Query)
 	if query == "" {
@@ -277,6 +286,7 @@ func (s *Service) score(query string) []explorercontract.SearchHit {
 	return hits
 }
 
+// EntityDetail returns one entity and its bounded direct relationships.
 func (s *Service) EntityDetail(id string, edgeLimit int) (explorercontract.EntityDetail, explorercontract.Meta, error) {
 	if err := catalog.ValidateEntityID(id); err != nil {
 		return explorercontract.EntityDetail{}, explorercontract.Meta{}, usageError("invalid_entity_id", "The entity ID is invalid.")
@@ -304,6 +314,7 @@ func (s *Service) EntityDetail(id string, edgeLimit int) (explorercontract.Entit
 	return explorercontract.EntityDetail{Entity: entity, Incoming: incoming, Outgoing: outgoing}, explorercontract.Meta{Total: total, Truncated: truncated}, nil
 }
 
+// GraphOptions defines one bounded aggregate, region, or neighborhood graph.
 type GraphOptions struct {
 	Mode               explorercontract.GraphMode
 	GroupBy            explorercontract.GraphGroup
@@ -313,6 +324,7 @@ type GraphOptions struct {
 	MaxNodes, MaxEdges int
 }
 
+// Graph returns a deterministic progressive graph at the requested level.
 func (s *Service) Graph(options GraphOptions) (explorercontract.GraphPage, explorercontract.Meta, error) {
 	if options.MaxNodes == 0 {
 		options.MaxNodes = MaxGraphNodes
@@ -508,6 +520,7 @@ func constrainGraph(page explorercontract.GraphPage, options GraphOptions, summa
 	return page
 }
 
+// Health returns bounded redacted findings for the immutable projection.
 func (s *Service) Health(severity explorercontract.HealthSeverity, limit int) (explorercontract.HealthReport, explorercontract.Meta, error) {
 	if severity != "" && severity != explorercontract.HealthError && severity != explorercontract.HealthWarning && severity != explorercontract.HealthInfo {
 		return explorercontract.HealthReport{}, explorercontract.Meta{}, usageError("invalid_severity", "The health severity is not supported.")

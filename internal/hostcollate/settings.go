@@ -77,6 +77,7 @@ func (s Settings) RegistrationRequired() bool {
 
 // LoadSettings decodes path. A missing file is a disabled default, not an error.
 func LoadSettings(path string) (Settings, error) {
+	//nolint:gosec // The host explicitly supplies its settings path.
 	payload, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {

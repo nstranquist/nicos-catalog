@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose one portable cross-host capability.
+title: "feature: "
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: User job
+      description: State the task and the user who needs it.
+    validations:
+      required: true
+  - type: textarea
+    id: host
+    attributes:
+      label: Host evidence
+      description: Name the independent host or workflow that needs this capability.
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Privacy and mutation boundary
+      description: State what data crosses the boundary and whether any write occurs.
+    validations:
+      required: true
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Current alternative
+      description: Explain how the task works now.
+    validations:
+      required: true

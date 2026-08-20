@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible Nicos Catalog defect.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: Do not include secrets, private catalog data, or local absolute paths.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Run `nicos-catalog version`.
+      placeholder: v0.3.1
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Go library
+        - CLI
+        - Explorer live server
+        - Static Explorer
+        - MCP
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction
+      description: Give the smallest synthetic or redacted reproduction.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed secrets, private catalog values, and local absolute paths.
+          required: true

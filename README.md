@@ -34,8 +34,8 @@ demo is in [screenshots/](screenshots/).
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.0
-nicos-catalog version --expect v0.3.0
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.1
+nicos-catalog version --expect v0.3.1
 ```
 
 For a source checkout:
@@ -67,6 +67,11 @@ go install ./cmd/nicos-catalog
 
 The built-in demo contains synthetic entities only and writes to a temporary
 directory. The command removes that directory when the server stops.
+
+Open the [hosted synthetic Explorer](https://nicos-catalog-explorer.pages.dev/)
+to inspect the same public, read-only experience without installing the CLI.
+The hosted site contains no authored user corpus and sends no application
+telemetry.
 
 ```sh
 nicos-catalog demo --ui --open
@@ -195,15 +200,16 @@ that make a catalog operational: provider boundaries, deterministic derived
 state, search, typed relationships, and drift enforcement.
 
 See [the Explorer guide](docs/explorer.md),
+[the hosting guide](docs/hosting.md),
 [the performance guide](docs/performance.md),
 [docs/architecture.md](docs/architecture.md), and
 [SECURITY.md](SECURITY.md).
 
 ## Release state
 
-`v0.3.0` is a public module release. Read the
-[release notes](docs/releases/v0.3.0.md) and the dated
-[publication review](docs/releases/v0.3.0-publication-review.md).
+`v0.3.1` is the current module release. Read the
+[release notes](docs/releases/v0.3.1.md) and the dated
+[publication review](docs/releases/v0.3.1-publication-review.md).
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

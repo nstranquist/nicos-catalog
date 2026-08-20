@@ -1,4 +1,4 @@
-.PHONY: verify demo install release-check verify-publication browser-smoke cover fuzz bench perf docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
+.PHONY: verify demo demo-export install release-check verify-publication browser-smoke cover fuzz bench perf docs-site repro verify-explorer-contract explorer-install explorer-check verify-explorer-embed
 
 # Coverage floors ratchet upward only. Raising them is a normal change; lowering
 # them is a decision that should be argued for in review.
@@ -21,6 +21,7 @@ EXPLORER_GO_PACKAGES := \
 # The published version lives in exactly one place.
 VERSION := $(shell cat VERSION)
 EXPLORER_BASE ?= http://127.0.0.1:7797
+DEMO_EXPORT_DIR ?= .deploy/explorer
 
 # Flags shared with the CI "reproducible" job so local and GHA exercise the same
 # dual-build contract. Empty -buildid= zeros the linker's non-deterministic ID;
@@ -77,6 +78,13 @@ perf:
 
 demo:
 	go run ./cmd/nicos-catalog --json demo
+
+# Build the same synthetic, public, read-only Explorer used by the hosted demo.
+# The export command owns replacement and rejects unsafe output paths.
+demo-export:
+	go run ./cmd/nicos-catalog --root . --corpus demo/catalog reindex
+	go run ./cmd/nicos-catalog --root . --corpus demo/catalog export explorer \
+		--out $(DEMO_EXPORT_DIR) --visibility public --allow-hosts example.com
 
 docs-site:
 	corepack pnpm@11.13.0 --dir site install --frozen-lockfile

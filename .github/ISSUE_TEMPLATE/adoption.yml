@@ -1,0 +1,46 @@
+name: Adoption receipt
+description: Share a public or fully redacted independent use of Nicos Catalog.
+title: "adoption: "
+body:
+  - type: markdown
+    attributes:
+      value: A receipt helps maintainers distinguish distribution from real adoption. Do not disclose private catalog data.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface used
+      multiple: true
+      options:
+        - Go library
+        - CLI
+        - Explorer live server
+        - Static Explorer
+        - MCP
+    validations:
+      required: true
+  - type: textarea
+    id: job
+    attributes:
+      label: Job completed
+      description: Describe the outcome without private entity data.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v0.3.1
+    validations:
+      required: true
+  - type: textarea
+    id: friction
+    attributes:
+      label: Friction or missing capability
+      description: State the first problem that slowed adoption.
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Publication consent
+      options:
+        - label: This receipt contains no secret or private catalog value.
+          required: true

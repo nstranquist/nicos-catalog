@@ -48,6 +48,7 @@ export default defineConfig({
             { label: 'Drift and reconcile', slug: 'drift' },
             { label: 'CLI', slug: 'cli' },
             { label: 'Static export', slug: 'static-export' },
+            { label: 'Host a static Explorer', slug: 'hosting' },
             { label: 'Read-only MCP', slug: 'mcp' },
             { label: 'Performance', slug: 'performance' },
           ],

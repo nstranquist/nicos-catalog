@@ -21,4 +21,6 @@ checks that digest before it uses the file.
 Equal inputs produce equal output bytes. The manifest contains no time, local
 path, host name, user name, machine ID, or operator identity.
 
+Use [Host a static Explorer](/hosting/) for deployment and post-deploy checks.
+
 See the full [static export safety guide](https://github.com/nstranquist/nicos-catalog/blob/main/docs/static-export.md).

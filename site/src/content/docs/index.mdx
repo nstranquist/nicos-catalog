@@ -16,6 +16,9 @@ hero:
     - text: Open Explorer
       link: /explorer/
       variant: secondary
+    - text: Hosted demo
+      link: https://nicos-catalog-explorer.pages.dev/
+      variant: secondary
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -43,6 +46,7 @@ This book is the **engine** user manual (`nicos-catalog` module and CLI). Host-o
   <LinkCard title="Docs" href="/docs/" description="Enter the book. Sidebar, search, and every engine page." />
   <LinkCard title="Explorer" href="/explorer/" description="Browse the catalog and open bounded pages, graphs, and health views." />
   <LinkCard title="Static export" href="/static-export/" description="Build a deterministic public site from the closed projection." />
+  <LinkCard title="Host an Explorer" href="/hosting/" description="Build, deploy, and verify a static Explorer." />
   <LinkCard title="Read-only MCP" href="/mcp/" description="Connect an agent to bounded search, page, graph, and health tools." />
   <LinkCard title="Search" href="/search/" description="BM25 over the derived index." />
   <LinkCard title="Graph" href="/graph/" description="Typed relationship graph as Mermaid or JSON." />

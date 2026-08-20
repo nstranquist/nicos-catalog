@@ -23,6 +23,9 @@ nicos-catalog export explorer \
 Serve the output with any static file server. The server must provide the
 application fallback to `index.html` for client routes.
 
+Use the [hosting guide](hosting.md) for the synthetic demo, Cloudflare Pages,
+and post-deploy checks.
+
 ## Output contract
 
 The export contains these files:

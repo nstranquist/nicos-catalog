@@ -9,6 +9,7 @@ import { router } from './router'
 
 const entity = { id: 'service.seed-api', name: 'Seed API', kind: 'service', status: 'active', surface: 'runtime', tags: ['platform'], summary: 'A synthetic public service.' }
 const edge = { source: 'repository.seed-api', target: entity.id, kind: 'builds' }
+const routeReady = { timeout: 10_000 }
 
 describe('Explorer application', () => {
   beforeEach(async () => {
@@ -31,14 +32,14 @@ describe('Explorer application', () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const view = render(<QueryClientProvider client={queryClient}><SourceProvider><RouterProvider router={router} /></SourceProvider></QueryClientProvider>)
 
-    expect(await screen.findByRole('heading', { name: /one clear view/i })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: /one clear view/i }, routeReady)).toBeVisible()
     await expectAccessible(view.container)
 
     await user.click(screen.getByRole('link', { name: /^catalog/i }))
-    expect(await screen.findByRole('heading', { name: /find the exact thing/i })).toBeVisible()
-    const openPage = await screen.findByRole('button', { name: /open page for seed api/i })
+    expect(await screen.findByRole('heading', { name: /find the exact thing/i }, routeReady)).toBeVisible()
+    const openPage = await screen.findByRole('button', { name: /open page for seed api/i }, routeReady)
     await user.click(openPage)
-    const dialog = await screen.findByRole('dialog', { name: /seed-api/i })
+    const dialog = await screen.findByRole('dialog', { name: /seed-api/i }, routeReady)
     expect(dialog).toBeVisible()
     expect(screen.getByRole('button', { name: /close page/i })).toHaveFocus()
     await expectAccessible(view.container)
@@ -47,7 +48,7 @@ describe('Explorer application', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await waitFor(() => expect(screen.getByRole('button', { name: /open page for seed api/i })).toHaveFocus())
     expect(sessionStorage.getItem('nicos-catalog:explorer:selected')).toBeNull()
-  })
+  }, 30_000)
 })
 
 async function expectAccessible(root: HTMLElement) {

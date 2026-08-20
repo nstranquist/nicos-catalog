@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## v0.3.1 — 2026-08-20
+
 ### Fixed
 
 - CLI commands now fail when a successful human-readable result cannot be

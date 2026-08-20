@@ -3,6 +3,16 @@ title: Upgrade Nicos Catalog
 description: Required source, index, and UI changes across Nicos Catalog releases.
 ---
 
+## v0.3.0 to v0.3.1
+
+v0.3.1 is a compatible patch. It does not change the Go API, index schema, or
+Explorer data contract. Replace the binary. You do not need to reindex.
+
+```sh
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.1
+nicos-catalog version --expect v0.3.1
+```
+
 ## v0.2.0 to v0.3.0
 
 v0.3.0 adds commands and Explorer contracts. It does not remove a v0.2.0 Go

@@ -8,8 +8,8 @@ Requires **Go 1.24** or newer.
 ## Module and CLI
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.0
-nicos-catalog version --expect v0.3.0
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.1
+nicos-catalog version --expect v0.3.1
 ```
 
 From a source checkout of this package:
@@ -18,7 +18,7 @@ From a source checkout of this package:
 go test ./...
 go install ./cmd/nicos-catalog
 # or, without installing:
-go run ./cmd/nicos-catalog version --expect v0.3.0
+go run ./cmd/nicos-catalog version --expect v0.3.1
 ```
 
 `VERSION` in the package root is the published SemVer. `nicos-catalog version --expect` fails unless the running binary matches.

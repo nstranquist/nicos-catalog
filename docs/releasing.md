@@ -20,7 +20,10 @@ publication test rejects common temporary phrases.
 1. Select the next SemVer version.
 2. Update `VERSION`, the Explorer package version, the changelog, and the
    release notes.
-3. Run the complete local gates:
+3. Run the complete local gates in the listed order. Run `make perf` when no
+   fuzz, build, browser, or other CPU-heavy job is active. A contended latency
+   sample is invalid. Do not change the baseline to accept it. Wait for the
+   load to end, and run `make perf` again.
 
 ```sh
 make verify-publication

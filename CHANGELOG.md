@@ -9,6 +9,8 @@
 - Two portfolio-manifest links now name the current README headings.
 - A publication regression test now checks every repository-local GitHub
   fragment in the portfolio manifest against the README heading anchors.
+- The release procedure now requires an isolated performance sample and
+  rejects a contended sample as evidence.
 
 ## v0.3.1 — 2026-08-20
 

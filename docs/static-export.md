@@ -32,6 +32,7 @@ The export contains these files:
 
 ```text
 index.html
+_headers
 assets/<content-hash>.js
 assets/<content-hash>.css
 data/manifest.json
@@ -47,6 +48,10 @@ checks each digest before it uses the file.
 The manifest has no time, local path, host name, user name, machine ID, or
 operator identity. Equal inputs and equal application assets produce equal
 output bytes.
+
+`_headers` applies a restrictive security policy when Cloudflare Pages serves
+the export. Cloudflare parses this control file and does not serve it as a
+static asset. Another static host must apply equivalent response headers.
 
 ## Safety rules
 

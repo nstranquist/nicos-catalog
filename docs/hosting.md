@@ -43,14 +43,17 @@ Check all of these items after each deploy:
 2. `data/manifest.json` returns JSON with `projection_mode: public`.
 3. The product version matches the release commit.
 4. Each manifest digest matches its data file.
-5. Browser smoke reports no failed or third-party request.
-6. A scan finds no private path, credential, user corpus, or host-only field.
+5. The HTML response includes the export's Content Security Policy,
+   `X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff`.
+6. Browser smoke reports no failed or third-party request.
+7. A scan finds no private path, credential, user corpus, or host-only field.
 
 Record the deployment URL, deployment ID, source commit, manifest digest,
 browser run, and scan result in a dated publication review.
 
 ## Lifecycle boundary
 
-An export on disk is built. A Pages upload is deployed. A public URL with a
-verified user journey is launched. None of these states proves independent
-adoption, retention, revenue, or production use by another organization.
+An export on disk is built. A Pages upload is deployed. A public URL and a
+verified user journey prove a hosted deployment. They do not prove an
+announcement, a launch, independent adoption, retention, revenue, or
+production use by another organization.

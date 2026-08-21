@@ -38,7 +38,10 @@ Open the maintained synthetic demo at
 
 Check `/`, `/catalog`, `/graph`, `/health`, and `data/manifest.json`. Confirm
 the product version, content digests, public projection mode, and direct-route
-fallback. Run the browser smoke and scan the deployed bytes for private paths,
-credentials, user corpus, and host-only fields.
+fallback. Confirm that the HTML response includes the Content Security Policy,
+`X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff`. Run the browser
+smoke and scan the deployed bytes for private paths, credentials, user corpus,
+and host-only fields.
 
-A successful deployment does not prove independent adoption.
+A public URL and a verified user journey prove a hosted deployment. They do
+not prove an announcement, a launch, or independent adoption.

@@ -39,9 +39,28 @@ func TestExportDeterministicOwnedReplacement(t *testing.T) {
 	if !first.OutputChanged || first.EntityCount != 2 || len(first.Files) < 7 {
 		t.Fatalf("first receipt = %+v", first)
 	}
-	for _, name := range []string{"index.html", "data/manifest.json", "data/entities.json", "data/graph.json", "data/health.json", "data/search.json"} {
+	for _, name := range []string{"_headers", "index.html", "data/manifest.json", "data/entities.json", "data/graph.json", "data/health.json", "data/search.json"} {
 		if _, err := os.Stat(filepath.Join(out, name)); err != nil {
 			t.Fatalf("missing %s: %v", name, err)
+		}
+	}
+	headerBytes, err := os.ReadFile(filepath.Join(out, "_headers"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(headerBytes) != staticHeaders {
+		t.Fatalf("static headers changed:\n%s", headerBytes)
+	}
+	for _, directive := range []string{
+		"Content-Security-Policy:",
+		"frame-ancestors 'none'",
+		"Permissions-Policy:",
+		"Referrer-Policy: no-referrer",
+		"X-Content-Type-Options: nosniff",
+		"X-Frame-Options: DENY",
+	} {
+		if !strings.Contains(string(headerBytes), directive) {
+			t.Errorf("static headers do not contain %q", directive)
 		}
 	}
 	indexBytes, err := os.ReadFile(filepath.Join(out, "index.html"))

@@ -100,5 +100,11 @@ Also run `go list -m -json` with the same proxy settings. Record the resolved
 version, origin hash, CI run, Release URL, tag signature result, and install
 result in the dated publication review.
 
+For a deployed static Explorer, verify the Content Security Policy,
+`X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff` on the HTML
+response. Compare every served artifact with the release-bound export.
+Cloudflare Pages consumes `_headers`; do not expect that control file to be a
+served artifact.
+
 Public distribution does not prove deployment, announcement, adoption, active
 use, or revenue. Record a later state only with direct evidence.

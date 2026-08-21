@@ -14,9 +14,13 @@ The command accepts the public projection only. It refuses a filesystem root,
 a symlink path, a protected catalog directory, and an unknown non-empty
 directory.
 
-The export contains hashed application assets and four versioned data files.
-`data/manifest.json` binds each data file to a SHA-256 digest. The browser
-checks that digest before it uses the file.
+The export contains hashed application assets, four versioned data files, and
+a `_headers` control file. `data/manifest.json` binds each data file to a
+SHA-256 digest. The browser checks that digest before it uses the file.
+
+Cloudflare Pages parses `_headers` and applies the restrictive Content
+Security Policy and related response headers. It does not serve `_headers` as
+a public asset. Another static host must apply equivalent response headers.
 
 Equal inputs produce equal output bytes. The manifest contains no time, local
 path, host name, user name, machine ID, or operator identity.

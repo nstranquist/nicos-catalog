@@ -30,6 +30,15 @@ type Options struct {
 const (
 	liveSourceMarker   = `<meta name="nicos-catalog-source" content="live">`
 	staticSourceMarker = `<meta name="nicos-catalog-source" content="static">`
+	staticHeaders      = `/*
+  Content-Security-Policy: default-src 'self'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; worker-src 'none'
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+`
 )
 
 // Export writes a complete public bundle through a unique sibling directory.
@@ -100,6 +109,9 @@ func Export(ctx context.Context, service *explorerapi.Service, options Options) 
 
 func build(ctx context.Context, root string, service *explorerapi.Service, productVersion string) (explorercontract.ExportReceipt, error) {
 	if err := copyWeb(ctx, root); err != nil {
+		return explorercontract.ExportReceipt{}, err
+	}
+	if err := writeFile(filepath.Join(root, "_headers"), []byte(staticHeaders)); err != nil {
 		return explorercontract.ExportReceipt{}, err
 	}
 	dataset := service.Dataset()

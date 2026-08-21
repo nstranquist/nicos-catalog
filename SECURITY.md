@@ -84,6 +84,11 @@ directory before it replaces a prior complete export.
 Each static data file has a SHA-256 digest in `data/manifest.json`. The browser
 checks the digest before it uses the data.
 
+Each export includes a Cloudflare Pages `_headers` control file. It restricts
+script, style, image, connection, framing, form, object, and browser-feature
+sources. It also sets referrer, MIME-sniffing, cross-origin, and frame-denial
+policies. Another static host must apply equivalent response headers.
+
 ## MCP boundary
 
 `mcp --stdio` exposes read-only tools only. It opens no network listener. Each

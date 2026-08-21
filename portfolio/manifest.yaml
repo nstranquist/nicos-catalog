@@ -15,7 +15,7 @@ access:
         url: https://github.com/nstranquist/nicos-catalog#install
     repository_url: https://github.com/nstranquist/nicos-catalog
     documentation_url: https://github.com/nstranquist/nicos-catalog#five-minute-explorer
-    demo_url: https://nicos-catalog-explorer.pages.dev/
+    demo_url: https://nicos-catalog-explorer.nstranquist.workers.dev/
     module: github.com/nstranquist/nicos-catalog
     binary: nicos-catalog
     smoke_argv: [go, run, ./cmd/nicos-catalog, version]

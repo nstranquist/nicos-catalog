@@ -68,7 +68,7 @@ go install ./cmd/nicos-catalog
 The built-in demo contains synthetic entities only and writes to a temporary
 directory. The command removes that directory when the server stops.
 
-Open the [hosted synthetic Explorer](https://nicos-catalog-explorer.pages.dev/)
+Open the [hosted synthetic Explorer](https://nicos-catalog-explorer.nstranquist.workers.dev/)
 to inspect the same public, read-only experience without installing the CLI.
 The hosted site contains no authored user corpus and sends no application
 telemetry.
@@ -215,8 +215,10 @@ reviewed pull requests.
 ## Release state
 
 `v0.3.4` is the current module release. Read the
-[release notes](docs/releases/v0.3.4.md). Dated publication reviews record
-external release and deployment evidence without claiming launch or adoption.
+[release notes](docs/releases/v0.3.4.md) and the
+[publication review](docs/releases/v0.3.4-publication-review.md). The review
+records external release and deployment evidence without claiming launch or
+adoption.
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

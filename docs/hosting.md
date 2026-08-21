@@ -18,7 +18,31 @@ protected catalog directories, and unknown non-Explorer output directories.
 Preview the directory with a static server that sends `index.html` for unknown
 application routes. Then run the browser smoke against that server.
 
-## Deploy to Cloudflare Pages
+## Deploy as Worker static assets
+
+Use an assets-only Worker when the deployment needs a stable Worker endpoint.
+Put this configuration in a private deployment workspace. Replace the name and
+date for your deployment:
+
+```toml
+name = "YOUR_WORKER"
+compatibility_date = "YYYY-MM-DD"
+
+[assets]
+directory = ".deploy/explorer"
+not_found_handling = "single-page-application"
+```
+
+Copy the release-bound export to the configured directory and run:
+
+```sh
+wrangler deploy
+```
+
+Do not add a Worker script. The assets-only deployment applies the export's
+`_headers` rules and provides the application-route fallback.
+
+## Deploy to Cloudflare Pages as a fallback
 
 Create one Pages project. Then deploy the generated directory:
 
@@ -32,8 +56,9 @@ wrangler pages deploy .deploy/explorer \
 Use an account-pinned credential workflow for production. Do not put a token
 in this repository or in a command argument.
 
-The maintained synthetic demo is at
-<https://nicos-catalog-explorer.pages.dev/>.
+The maintained synthetic demo uses the Worker endpoint at
+<https://nicos-catalog-explorer.nstranquist.workers.dev/>. The retained Pages
+fallback is <https://nicos-catalog-explorer.pages.dev/>.
 
 ## Verify the deployment
 

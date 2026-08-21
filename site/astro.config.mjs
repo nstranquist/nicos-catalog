@@ -18,6 +18,9 @@ export default defineConfig({
       title: 'Nicos Catalog',
       description:
         'User docs for the portable Nicos Catalog engine: Layout, providers, CLI, and the closed public DTO.',
+      // The docs collection owns /404 so the page keeps the Starlight shell.
+      // Disable Starlight's injected route to avoid two producers for 404.html.
+      disable404Route: true,
       logo: {
         src: './public/favicon.svg',
         alt: 'Nicos Catalog',

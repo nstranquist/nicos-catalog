@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "endpoint_id": "nicos-catalog-explorer/web",
+  "provider": "cloudflare-workers",
+  "provider_profile": "cloudflare.nicos-catalog.production",
+  "source": {
+    "repository": "git@github.com:nstranquist/nicos-catalog.git",
+    "commit": "9de295bf3107899318478a0ee0d995a39796d390",
+    "paths": [
+      "site"
+    ],
+    "dirty": false,
+    "artifact_sha256": "87f24c1354dd79f5d1498d80e804c55df73c2b191b6c0f98e383e39189209ae2",
+    "config_sha256": "43b4d114405d9abaf6243215bf7ad38a371650ea2ecf0833bba88be9e2965f38"
+  },
+  "deployment": {
+    "resource": "nicos-catalog-explorer",
+    "started_at": "2026-08-21T07:09:54.244679Z",
+    "completed_at": "2026-08-21T07:10:02.027701Z",
+    "version_id": "c0ca675f-70b3-42f4-9560-2e1c1a067696",
+    "previous_version_id": "eb8435c3-0eb7-46a0-8a0f-fd15a21592e4",
+    "command": [
+      "ndev",
+      "integrations",
+      "cloudflare",
+      "run",
+      "--profile",
+      "cloudflare.nicos-catalog.production",
+      "--operation",
+      "mutating",
+      "--",
+      "wrangler",
+      "deploy"
+    ]
+  },
+  "verification": {
+    "reachability": "public",
+    "url": "https://nicos-catalog-explorer.nstranquist.workers.dev/",
+    "final_url": "https://nicos-catalog-explorer.nstranquist.workers.dev/",
+    "observed_at": "2026-08-21T07:10:02.140839Z",
+    "status_code": 200,
+    "content_type": "text/html",
+    "body_sha256": "b577215d50d502945c141621be8a17940a8ea595491eb7f345d7d14d1228a8ad",
+    "response_size": 27548
+  },
+  "rollback": {
+    "mode": "fallback-url",
+    "target_url": "https://nicos-catalog-explorer.pages.dev/",
+    "verification": {
+      "reachability": "retained-fallback",
+      "url": "https://nicos-catalog-explorer.pages.dev/",
+      "final_url": "https://nicos-catalog-explorer.pages.dev/",
+      "observed_at": "2026-08-21T07:09:54.318873Z",
+      "status_code": 200,
+      "content_type": "text/html; charset=utf-8",
+      "body_sha256": "cdac020e90859cf8192db9a8f9fe47db153ac8d7e94226ed79831f2b16a5788f",
+      "response_size": 771
+    },
+    "command": [
+      "ndev",
+      "endpoints",
+      "set",
+      "nicos-catalog-explorer/web",
+      "--prod",
+      "https://nicos-catalog-explorer.pages.dev/"
+    ]
+  }
+}

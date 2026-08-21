@@ -13,7 +13,7 @@
     "typecheck": "astro check",
     "test": "astro check",
     "verify": "pnpm build && pnpm typecheck && pnpm test",
-    "ship": "pnpm build && ndev integrations cloudflare run --profile cloudflare.nicos-catalog.production --operation mutating --proof-endpoint nicos-catalog-explorer/web --proof-url https://nicos-catalog-explorer.nstranquist.workers.dev/ --proof-reachability public --proof-assets dist --proof-receipt docs/deployment-receipts/web.json --proof-source . --proof-rollback-url https://nicos-catalog-explorer.pages.dev/ -- wrangler deploy"
+    "ship": "pnpm build && ndev integrations cloudflare run --profile cloudflare.nicos-catalog.production --operation mutating --proof-endpoint nicos-catalog-explorer/web --proof-url https://nicos-catalog-explorer.nstranquist.workers.dev/ --proof-reachability public --proof-assets dist --proof-receipt docs/deployment-receipts/web.json --proof-source . -- wrangler deploy"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.41.7",

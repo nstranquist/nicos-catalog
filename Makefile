@@ -88,7 +88,10 @@ demo-export:
 
 docs-site:
 	corepack pnpm@11.13.0 --dir site install --frozen-lockfile
+	corepack pnpm@11.13.0 --dir site peers check
+	corepack pnpm@11.13.0 --dir site check
 	corepack pnpm@11.13.0 --dir site build
+	grep -q 'That page is not in this book' site/dist/404.html
 
 verify-explorer-contract:
 	go run ./cmd/explorer-contract-gen --check
@@ -97,6 +100,7 @@ explorer-install:
 	corepack pnpm@11.13.0 --dir explorer install --frozen-lockfile
 
 explorer-check: explorer-install
+	corepack pnpm@11.13.0 --dir explorer peers check
 	corepack pnpm@11.13.0 --dir explorer check
 
 verify-explorer-embed: explorer-install

@@ -131,13 +131,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24.19.0"
       - run: corepack enable
-      - run: corepack prepare pnpm@10.12.1 --activate
+      - run: corepack prepare pnpm@11.13.0 --activate
       - run: make explorer-check
       - run: make verify-explorer-embed
+
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.19.0"
+      - run: corepack enable
+      - run: corepack prepare pnpm@11.13.0 --activate
+      - run: make docs-site
 
   # The README is executable: every command it advertises runs here, on all
   # three platforms, so the documentation cannot drift away from the behavior.

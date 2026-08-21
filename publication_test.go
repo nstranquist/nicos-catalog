@@ -95,18 +95,79 @@ func TestPublicationDependencyMonitoringCoversAllPackageManagers(t *testing.T) {
 		Updates []struct {
 			Ecosystem string `yaml:"package-ecosystem"`
 			Directory string `yaml:"directory"`
+			Ignore    []struct {
+				DependencyName string   `yaml:"dependency-name"`
+				UpdateTypes    []string `yaml:"update-types"`
+			} `yaml:"ignore"`
 		} `yaml:"updates"`
 	}
 	if err := yaml.Unmarshal([]byte(readPublicationFile(t, ".github", "dependabot.yml")), &config); err != nil {
 		t.Fatal(err)
 	}
 	configured := map[string]bool{}
+	siteTypeScriptMajorIgnored := false
 	for _, update := range config.Updates {
 		configured[update.Ecosystem+":"+update.Directory] = true
+		if update.Ecosystem == "npm" && update.Directory == "/site" {
+			for _, ignored := range update.Ignore {
+				if ignored.DependencyName == "typescript" && strings.Contains(strings.Join(ignored.UpdateTypes, " "), "version-update:semver-major") {
+					siteTypeScriptMajorIgnored = true
+				}
+			}
+		}
 	}
 	for _, required := range []string{"gomod:/", "github-actions:/", "npm:/explorer", "npm:/site"} {
 		if !configured[required] {
 			t.Errorf("Dependabot does not cover %s", required)
+		}
+	}
+	if !siteTypeScriptMajorIgnored {
+		t.Error("Dependabot can propose TypeScript 7 for the site even though astro check requires the TypeScript 6 programmatic API")
+	}
+}
+
+func TestPublicationNodePackageGatesMatchPinnedManager(t *testing.T) {
+	type packageManifest struct {
+		PackageManager string `json:"packageManager"`
+	}
+	var pinned string
+	for _, root := range []string{"explorer", "site"} {
+		var manifest packageManifest
+		if err := json.Unmarshal([]byte(readPublicationFile(t, root, "package.json")), &manifest); err != nil {
+			t.Fatal(err)
+		}
+		if pinned == "" {
+			pinned = manifest.PackageManager
+		}
+		if manifest.PackageManager != pinned {
+			t.Errorf("%s package manager = %q, want %q", root, manifest.PackageManager, pinned)
+		}
+	}
+	version := strings.TrimPrefix(pinned, "pnpm@")
+	if version == pinned || version == "" {
+		t.Fatalf("package manager is not an exact pnpm pin: %q", pinned)
+	}
+	makefile := readPublicationFile(t, "Makefile")
+	for _, command := range []string{
+		"corepack pnpm@" + version + " --dir explorer peers check",
+		"corepack pnpm@" + version + " --dir explorer check",
+		"corepack pnpm@" + version + " --dir site peers check",
+		"corepack pnpm@" + version + " --dir site check",
+		"corepack pnpm@" + version + " --dir site build",
+		"grep -q 'That page is not in this book' site/dist/404.html",
+	} {
+		if !strings.Contains(makefile, command) {
+			t.Errorf("Makefile does not run %q", command)
+		}
+	}
+	workflow := readPublicationFile(t, ".github", "workflows", "ci.yml")
+	for _, command := range []string{
+		"corepack prepare pnpm@" + version + " --activate",
+		"run: make explorer-check",
+		"run: make docs-site",
+	} {
+		if !strings.Contains(workflow, command) {
+			t.Errorf("CI does not run %q", command)
 		}
 	}
 }

@@ -18,6 +18,9 @@ export default defineConfig({
       title: 'Nicos Catalog',
       description:
         'User docs for the portable Nicos Catalog engine: Layout, providers, CLI, and the closed public DTO.',
+      // The authored docs/404.md page owns /404. Disable Starlight's injected
+      // fallback so Astro does not discard the authored route as a conflict.
+      disable404Route: true,
       logo: {
         src: './public/favicon.svg',
         alt: 'Nicos Catalog',

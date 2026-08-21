@@ -21,6 +21,9 @@ Do not publish the private index.
 
 **A URL allowlist is required, not implied.** Projecting any entity that declares a `PublicURL` with an empty `AllowHosts` is a hard error.
 
+Accepted public URLs use HTTPS, an allowlisted host, no user information, no
+at-sign credential delimiter, no query or fragment, and no non-default port.
+
 ## Before you publish
 
 - require an explicit public visibility value;

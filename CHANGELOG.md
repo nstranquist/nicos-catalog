@@ -6,6 +6,8 @@
 
 ### Fixed
 
+- Public URL projection now rejects an at-sign in raw or decoded URL paths.
+  Accepted URLs stay free of credential delimiters.
 - CLI commands now fail when a successful human-readable result cannot be
   written to standard output.
 - GitHub-local collation now restricts new and existing snapshot directories

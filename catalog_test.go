@@ -172,6 +172,8 @@ func TestPublicProjectionRejectsUnsafeURLsAndContent(t *testing.T) {
 		field string
 	}{
 		{"credentials", func(e *Entity) { e.PublicURL = "https://user:pass@example.com/item" }, RuleURLCredentials, "public_url"},
+		{"credentials-marker-path", func(e *Entity) { e.PublicURL = "https://example.com/@user" }, RuleURLCredentials, "public_url"},
+		{"encoded-credentials-marker-path", func(e *Entity) { e.PublicURL = "https://example.com/%40user" }, RuleURLCredentials, "public_url"},
 		{"query", func(e *Entity) { e.PublicURL = "https://example.com/item?token=secret" }, RuleURLQuery, "public_url"},
 		{"fragment", func(e *Entity) { e.PublicURL = "https://example.com/item#private" }, RuleURLQuery, "public_url"},
 		{"empty-fragment", func(e *Entity) { e.PublicURL = "https://example.com/#" }, RuleURLQuery, "public_url"},

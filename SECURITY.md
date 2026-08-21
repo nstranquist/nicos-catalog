@@ -47,6 +47,10 @@ never descriptions, annotations, public URLs, owners, or entrypoints.
 declares a `PublicURL` with an empty `AllowHosts` is a hard error. Forgetting to
 configure the allowlist cannot publish an unreviewed link.
 
+Accepted public URLs use HTTPS, an allowlisted host, no user information, no
+at-sign credential delimiter, no query or fragment, and no non-default port.
+The validator applies the at-sign check to raw and decoded paths.
+
 ## Adding a field to the public DTO
 
 Treat this as a privacy review, not a routine change. It means new data leaves

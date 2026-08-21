@@ -288,7 +288,10 @@ func validatePublicURL(raw string, allowed map[string]struct{}) error {
 	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" || parsed.Opaque != "" {
 		return &PolicyError{Field: "public_url", Rule: RuleURLScheme, Err: ErrPublicURLRejected}
 	}
-	if parsed.User != nil {
+	// Reject an at-sign anywhere, not only parsed user-info. A raw or decoded
+	// path at-sign is ambiguous in copied URLs and can hide a credential-like
+	// authority marker from a later parser or proxy.
+	if parsed.User != nil || strings.Contains(raw, "@") || strings.Contains(parsed.Path, "@") {
 		return &PolicyError{Field: "public_url", Rule: RuleURLCredentials, Err: ErrPublicURLRejected}
 	}
 	// url.Parse treats a trailing empty fragment ("…#") as Fragment==""; still reject

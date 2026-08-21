@@ -64,7 +64,7 @@ cover:
 fuzz:
 	@for target in $$(go test -list 'Fuzz.*' ./... | grep '^Fuzz'); do \
 	  echo "fuzzing $$target"; \
-	  go test -run '^$$' -fuzz "^$$target$$" -fuzztime=$(FUZZ_TIME) -parallel=$(FUZZ_PARALLEL) . || exit 1; \
+	  GOMAXPROCS=$(FUZZ_PARALLEL) go test -run '^$$' -fuzz "^$$target$$" -fuzztime=$(FUZZ_TIME) -parallel=$(FUZZ_PARALLEL) . || exit 1; \
 	done
 
 # Benchmarks are a crash and allocation smoke. The separate perf target applies

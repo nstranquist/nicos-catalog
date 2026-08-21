@@ -18,6 +18,8 @@
   keep mutable release state out of the GitHub Release body.
 - Release tag verification now uses a repository-owned SSH allowed-signers
   file.
+- The fuzz gate now binds Go scheduler concurrency to its worker limit on
+  shared hosts.
 
 ## v0.3.0 — 2026-08-20
 

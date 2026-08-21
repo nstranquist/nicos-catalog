@@ -35,7 +35,7 @@ func TestPublicationVersionPinsAgree(t *testing.T) {
 func TestPublicationReleaseNotesAreTimeless(t *testing.T) {
 	version := strings.TrimSpace(readPublicationFile(t, "VERSION"))
 	notes := readPublicationFile(t, "docs", "releases", version+".md")
-	firstLine, _, _ := strings.Cut(notes, "\n")
+	firstLine := publicationHeading(notes)
 	if want := "# Nicos Catalog " + version; firstLine != want {
 		t.Fatalf("release heading = %q, want %q", firstLine, want)
 	}
@@ -51,6 +51,20 @@ func TestPublicationReleaseNotesAreTimeless(t *testing.T) {
 		if strings.Contains(lower, transient) {
 			t.Errorf("release notes contain transient status text %q", transient)
 		}
+	}
+}
+
+func TestPublicationHeadingAcceptsPortableLineEndings(t *testing.T) {
+	const want = "# Nicos Catalog v0.3.1"
+	for name, notes := range map[string]string{
+		"LF":   want + "\n\nNotes\n",
+		"CRLF": want + "\r\n\r\nNotes\r\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := publicationHeading(notes); got != want {
+				t.Fatalf("publicationHeading() = %q, want %q", got, want)
+			}
+		})
 	}
 }
 
@@ -138,6 +152,11 @@ func readPublicationFile(t *testing.T, parts ...string) string {
 		t.Fatal(err)
 	}
 	return string(payload)
+}
+
+func publicationHeading(notes string) string {
+	firstLine, _, _ := strings.Cut(notes, "\n")
+	return strings.TrimSuffix(firstLine, "\r")
 }
 
 func mergeDependencies(groups ...map[string]string) map[string]string {

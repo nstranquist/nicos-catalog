@@ -3,11 +3,15 @@ package catalog
 import (
 	"encoding/json"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+	"unicode"
+
+	"go.yaml.in/yaml/v3"
 )
 
 func TestPublicationVersionPinsAgree(t *testing.T) {
@@ -55,7 +59,7 @@ func TestPublicationReleaseNotesAreTimeless(t *testing.T) {
 }
 
 func TestPublicationHeadingAcceptsPortableLineEndings(t *testing.T) {
-	const want = "# Nicos Catalog v0.3.1"
+	const want = "# Nicos Catalog v9.8.7"
 	for name, notes := range map[string]string{
 		"LF":   want + "\n\nNotes\n",
 		"CRLF": want + "\r\n\r\nNotes\r\n",
@@ -65,6 +69,23 @@ func TestPublicationHeadingAcceptsPortableLineEndings(t *testing.T) {
 				t.Fatalf("publicationHeading() = %q, want %q", got, want)
 			}
 		})
+	}
+}
+
+func TestPortfolioManifestReferencesREADMEHeadings(t *testing.T) {
+	var manifest any
+	if err := yaml.Unmarshal([]byte(readPublicationFile(t, "portfolio", "manifest.yaml")), &manifest); err != nil {
+		t.Fatal(err)
+	}
+	anchors := markdownHeadingAnchors(readPublicationFile(t, "README.md"))
+	for _, value := range stringValues(manifest) {
+		target, err := url.Parse(value)
+		if err != nil || !strings.EqualFold(target.Host, "github.com") || target.Path != "/nstranquist/nicos-catalog" || target.Fragment == "" {
+			continue
+		}
+		if !anchors[target.Fragment] {
+			t.Errorf("portfolio URL fragment %q does not name a README heading", target.Fragment)
+		}
 	}
 }
 
@@ -157,6 +178,46 @@ func readPublicationFile(t *testing.T, parts ...string) string {
 func publicationHeading(notes string) string {
 	firstLine, _, _ := strings.Cut(notes, "\n")
 	return strings.TrimSuffix(firstLine, "\r")
+}
+
+func markdownHeadingAnchors(markdown string) map[string]bool {
+	anchors := map[string]bool{}
+	for _, line := range strings.Split(markdown, "\n") {
+		if !strings.HasPrefix(line, "#") {
+			continue
+		}
+		heading := strings.TrimSpace(strings.TrimLeft(line, "#"))
+		var anchor strings.Builder
+		for _, char := range strings.ToLower(heading) {
+			switch {
+			case unicode.IsLetter(char), unicode.IsNumber(char), char == '-', char == '_':
+				anchor.WriteRune(char)
+			case unicode.IsSpace(char):
+				anchor.WriteByte('-')
+			}
+		}
+		if anchor.Len() > 0 {
+			anchors[anchor.String()] = true
+		}
+	}
+	return anchors
+}
+
+func stringValues(value any) []string {
+	var values []string
+	switch typed := value.(type) {
+	case string:
+		values = append(values, typed)
+	case []any:
+		for _, item := range typed {
+			values = append(values, stringValues(item)...)
+		}
+	case map[string]any:
+		for _, item := range typed {
+			values = append(values, stringValues(item)...)
+		}
+	}
+	return values
 }
 
 func mergeDependencies(groups ...map[string]string) map[string]string {

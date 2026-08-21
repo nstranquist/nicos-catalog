@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- A repository-owned Code of Conduct defines expected behavior, private
+  reporting, and proportionate enforcement.
+
+### Changed
+
+- Product metadata now records the hosted synthetic Explorer and distinguishes
+  deployment from a public launch or independent adoption.
+
 ## v0.3.2 — 2026-08-20
 
 ### Fixed

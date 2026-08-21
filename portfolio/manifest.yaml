@@ -15,6 +15,7 @@ access:
         url: https://github.com/nstranquist/nicos-catalog#install
     repository_url: https://github.com/nstranquist/nicos-catalog
     documentation_url: https://github.com/nstranquist/nicos-catalog#five-minute-explorer
+    demo_url: https://nicos-catalog-explorer.pages.dev/
     feedback_url: https://github.com/nstranquist/nicos-catalog/issues/new
     module: github.com/nstranquist/nicos-catalog
     binary: nicos-catalog
@@ -35,7 +36,7 @@ proof:
 assets:
     - path: portfolio/assets/catalog-engine.png
       kind: screenshot
-      alt: Nicos Catalog running inside Catalog Gallery as an independent synthetic host
+      alt: Nicos Catalog running inside Catalog Gallery with synthetic data
       caption: The public engine proof exercises provider injection, deterministic BM25 search, typed graphs, drift checks, and the closed projection.
       public: true
       provenance: local-synthetic-fixture-capture

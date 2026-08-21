@@ -4,6 +4,8 @@ This public repository is the source authority for the portable engine, CLI,
 Explorer, documentation, fixtures, and releases. Submit changes here. Do not
 sync product source from a private mirror.
 
+Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 Run the complete local gate before proposing a change:
 
 ```sh

@@ -58,7 +58,7 @@ the host. The change must update the frozen golden field list, the golden JSON
 artifact, and this document in the same commit; the tests fail until it does.
 
 Report vulnerabilities privately through the repository security advisory
-flow. Do not include secrets or private catalog data in a public issue.
+flow. Do not include secrets or private catalog data in a public post.
 
 ## Explorer server boundary
 

@@ -2,15 +2,31 @@
 
 ## [Unreleased]
 
+## v0.3.3 — 2026-08-20
+
 ### Added
 
 - A repository-owned Code of Conduct defines expected behavior, private
   reporting, and proportionate enforcement.
+- Static Explorer exports now include a deterministic Cloudflare Pages
+  `_headers` control file with restrictive security headers.
+- `SUPPORT.md` and a pull request template define contribution, privacy, and
+  private security-reporting paths without a public issue tracker.
+- Dependabot now covers the Explorer and documentation pnpm projects.
 
 ### Changed
 
 - Product metadata now records the hosted synthetic Explorer and distinguishes
   deployment from a public launch or independent adoption.
+- The repository no longer uses GitHub Issues for support, feedback, or backlog
+  management.
+
+### Fixed
+
+- Hosting guidance no longer classifies a public URL and synthetic browser
+  proof as a launch.
+- Publication tests now enforce the no-Issues, dependency-monitoring,
+  response-header, and launch-evidence boundaries.
 
 ## v0.3.2 — 2026-08-20
 

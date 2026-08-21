@@ -5,6 +5,8 @@ Explorer, documentation, fixtures, and releases. Submit changes here. Do not
 sync product source from a private mirror.
 
 Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Read [SUPPORT.md](SUPPORT.md) before you share a reproduction. This repository
+does not use GitHub Issues for support, feedback, or backlog management.
 
 Run the complete local gate before proposing a change:
 

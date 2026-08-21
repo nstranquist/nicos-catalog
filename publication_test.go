@@ -29,9 +29,93 @@ func TestPublicationVersionPinsAgree(t *testing.T) {
 	if manifest.Version != plain {
 		t.Fatalf("Explorer version = %q, want %q", manifest.Version, plain)
 	}
-	for _, path := range [][]string{{"README.md"}, {"site", "src", "content", "docs", "install.md"}, {"docs", "releases", version + ".md"}} {
+	for _, path := range [][]string{{"README.md"}, {"site", "src", "content", "docs", "install.md"}, {"site", "src", "content", "docs", "migrate.md"}, {"docs", "releases", version + ".md"}} {
 		if content := readPublicationFile(t, path...); !strings.Contains(content, "@"+version) && !strings.Contains(content, " "+version) {
 			t.Errorf("%s does not pin %s", filepath.Join(path...), version)
+		}
+	}
+}
+
+func TestPublicationDoesNotUseGitHubIssues(t *testing.T) {
+	entries, err := os.ReadDir(filepath.Join(".github", "ISSUE_TEMPLATE"))
+	if err == nil && len(entries) != 0 {
+		t.Fatalf("public issue templates are present: %v", entries)
+	}
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatalf("public issue template directory is unreadable: %v", err)
+	}
+	manifest := readPublicationFile(t, "portfolio", "manifest.yaml")
+	if strings.Contains(manifest, "feedback_url:") {
+		t.Fatal("portfolio manifest still publishes a feedback URL")
+	}
+	const issueURL = "github.com/nstranquist/nicos-catalog/issues"
+	for _, root := range []string{"README.md", "CONTRIBUTING.md", "SUPPORT.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "docs", filepath.Join("site", "src", "content"), "portfolio"} {
+		info, err := os.Stat(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !info.IsDir() {
+			if strings.Contains(readPublicationFile(t, root), issueURL) {
+				t.Errorf("%s links to the retired public issue tracker", root)
+			}
+			continue
+		}
+		err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if entry.IsDir() {
+				return nil
+			}
+			ext := strings.ToLower(filepath.Ext(path))
+			if ext != ".md" && ext != ".yaml" && ext != ".yml" && ext != ".json" {
+				return nil
+			}
+			payload, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			if strings.Contains(string(payload), issueURL) {
+				t.Errorf("%s links to the retired public issue tracker", path)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	support := readPublicationFile(t, "SUPPORT.md")
+	if !strings.Contains(support, "does not use GitHub Issues") || !strings.Contains(support, "private GitHub Security Advisory") {
+		t.Fatal("SUPPORT.md does not state the public support and private security boundaries")
+	}
+}
+
+func TestPublicationDependencyMonitoringCoversAllPackageManagers(t *testing.T) {
+	var config struct {
+		Updates []struct {
+			Ecosystem string `yaml:"package-ecosystem"`
+			Directory string `yaml:"directory"`
+		} `yaml:"updates"`
+	}
+	if err := yaml.Unmarshal([]byte(readPublicationFile(t, ".github", "dependabot.yml")), &config); err != nil {
+		t.Fatal(err)
+	}
+	configured := map[string]bool{}
+	for _, update := range config.Updates {
+		configured[update.Ecosystem+":"+update.Directory] = true
+	}
+	for _, required := range []string{"gomod:/", "github-actions:/", "npm:/explorer", "npm:/site"} {
+		if !configured[required] {
+			t.Errorf("Dependabot does not cover %s", required)
+		}
+	}
+}
+
+func TestPublicationLifecycleClaimsRequireDirectEvidence(t *testing.T) {
+	for _, path := range [][]string{{"docs", "hosting.md"}, {"site", "src", "content", "docs", "hosting.md"}} {
+		content := strings.Join(strings.Fields(strings.ToLower(readPublicationFile(t, path...))), " ")
+		if !strings.Contains(content, "do not prove an announcement, a launch") {
+			t.Errorf("%s does not preserve the launch evidence boundary", filepath.Join(path...))
 		}
 	}
 }

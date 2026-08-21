@@ -3,6 +3,18 @@ title: Upgrade Nicos Catalog
 description: Required source, index, and UI changes across Nicos Catalog releases.
 ---
 
+## v0.3.2 to v0.3.3
+
+v0.3.3 is a compatible publication-safety patch. Static Explorer exports now
+include a Cloudflare Pages `_headers` control file. The repository no longer
+uses GitHub Issues for support, feedback, or backlog management. No Go API,
+index schema, Explorer API, or static manifest schema changed.
+
+```sh
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.3
+nicos-catalog version --expect v0.3.3
+```
+
 ## v0.3.1 to v0.3.2
 
 v0.3.2 is a compatible metadata-integrity patch. It repairs two README links

@@ -18,8 +18,8 @@ person's private information without permission.
 
 ## Scope
 
-This policy applies to repository issues, pull requests, discussions, review
-comments, and other spaces where a person represents Nicos Catalog.
+This policy applies to pull requests, review comments, security advisories,
+and other spaces where a person represents Nicos Catalog.
 
 ## Reporting
 

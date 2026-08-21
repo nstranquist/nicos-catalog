@@ -34,8 +34,8 @@ demo is in [screenshots/](screenshots/).
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.2
-nicos-catalog version --expect v0.3.2
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.3
+nicos-catalog version --expect v0.3.3
 ```
 
 For a source checkout:
@@ -205,11 +205,18 @@ See [the Explorer guide](docs/explorer.md),
 [docs/architecture.md](docs/architecture.md), and
 [SECURITY.md](SECURITY.md).
 
+## Support and contributions
+
+Read [SUPPORT.md](SUPPORT.md) for the support, contribution, privacy, and
+security-reporting boundaries. This repository does not use GitHub Issues for
+support, feedback, or backlog management. Source and documentation fixes use
+reviewed pull requests.
+
 ## Release state
 
-`v0.3.2` is the current module release. Read the
-[release notes](docs/releases/v0.3.2.md) and the dated
-[publication review](docs/releases/v0.3.2-publication-review.md).
+`v0.3.3` is the current module release. Read the
+[release notes](docs/releases/v0.3.3.md). A dated publication review records
+external release and deployment evidence after publication.
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

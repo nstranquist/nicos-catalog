@@ -14,6 +14,8 @@
   package-level suppressions.
 - Release notes are now timeless. A separate runbook and publication review
   keep mutable release state out of the GitHub Release body.
+- Release tag verification now uses a repository-owned SSH allowed-signers
+  file.
 
 ## v0.3.0 — 2026-08-20
 

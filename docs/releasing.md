@@ -39,16 +39,28 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
 
 1. Push the reviewed release commit.
 2. Wait for public CI to pass on that commit.
-3. Create a signed annotated tag and verify it locally:
+3. Configure the maintainer SSH signing key. The public key must match one
+   entry in `.github/allowed_signers`:
+
+```sh
+git config --local gpg.format ssh
+git config --local user.signingkey /absolute/path/to/signing-key.pub
+git config --local gpg.ssh.allowedSignersFile .github/allowed_signers
+```
+
+4. Create a signed annotated tag and verify it locally:
 
 ```sh
 git tag -s vX.Y.Z -m "Nicos Catalog vX.Y.Z"
 git verify-tag vX.Y.Z
 ```
 
-4. After the operator gives explicit approval, push the tag.
-5. Wait for tag CI to pass.
-6. Create the GitHub Release from the timeless notes:
+5. Confirm that the same public key is registered as an SSH signing key for
+   the GitHub account. Local verification and GitHub's `Verified` label are
+   separate checks.
+6. After the operator gives explicit approval, push the tag.
+7. Wait for tag CI to pass.
+8. Create the GitHub Release from the timeless notes:
 
 ```sh
 gh release create vX.Y.Z \
@@ -58,7 +70,7 @@ gh release create vX.Y.Z \
   --verify-tag
 ```
 
-7. Read the GitHub Release. Confirm that its title, tag, target, and body match
+9. Read the GitHub Release. Confirm that its title, tag, target, and body match
    the reviewed files.
 
 Never move or replace a public tag. If published content needs a code or

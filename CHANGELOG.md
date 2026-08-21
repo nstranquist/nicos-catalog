@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## v0.3.4 — 2026-08-21
+
+### Added
+
+- Continuous integration now checks and builds the Astro documentation site.
+- Publication tests enforce the pinned pnpm version and documentation-site
+  dependency coverage.
+
+### Changed
+
+- Supported Go, Explorer, documentation, and GitHub Actions dependencies are
+  updated to their compatible current versions.
+- The embedded Explorer bundle is rebuilt from the updated dependency set.
+
+### Fixed
+
+- The documentation build now uses the repository-authored 404 page without
+  also generating Starlight's default 404 route.
+- The documentation project remains on its supported TypeScript major while
+  the Explorer uses the newer compiler independently.
+
 ## v0.3.3 — 2026-08-20
 
 ### Added

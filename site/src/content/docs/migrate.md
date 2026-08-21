@@ -3,6 +3,19 @@ title: Upgrade Nicos Catalog
 description: Required source, index, and UI changes across Nicos Catalog releases.
 ---
 
+## v0.3.3 to v0.3.4
+
+v0.3.4 is a compatible maintenance patch. It updates the supported Go and
+JavaScript dependencies, rebuilds the embedded Explorer, and adds continuous
+integration checks for the documentation site. No Go API, index schema,
+Explorer API, or static manifest schema changed. Replace the binary. You do
+not need to reindex.
+
+```sh
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.4
+nicos-catalog version --expect v0.3.4
+```
+
 ## v0.3.2 to v0.3.3
 
 v0.3.3 is a compatible publication-safety patch. Static Explorer exports now

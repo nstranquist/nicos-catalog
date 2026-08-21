@@ -1,0 +1,35 @@
+{
+  "created": "2026-08-21T08:16:25.325967Z",
+  "baseURL": "https://nicos-catalog-explorer.nstranquist.workers.dev/",
+  "product": "nicos-catalog-explorer",
+  "surface": "web",
+  "source": "site",
+  "ingestFormat": "ndev-browser-v2",
+  "bundleHash": "sha256:b69cfd78f25a4d6d5d0539c13b221e8823b18e3e9e5a11fc32741a7f4ec5aa13",
+  "total": 1,
+  "ok": 1,
+  "failed": 0,
+  "stats": {
+    "wallClockMs": 2510,
+    "shotsPerSec": 0,
+    "meanMs": 0,
+    "p50Ms": 0,
+    "p95Ms": 0,
+    "p99Ms": 0,
+    "maxMs": 0,
+    "workers": 1
+  },
+  "shots": [
+    {
+      "storyId": "public-catalog-home",
+      "title": "Public catalog home",
+      "viewport": "browser",
+      "viewportSize": "1440x1473",
+      "theme": "light",
+      "variant": "production",
+      "file": "public-catalog-home__browser__light.png",
+      "sourceFile": "docs/verify/web/evidence/public-catalog-home.png",
+      "millis": 125
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+name: nicos-catalog-public-home
+session: nicos-catalog-public-proof
+vars:
+  base: https://nicos-catalog-explorer.nstranquist.workers.dev/
+steps:
+  - verb: navigate
+    url: ${base}
+  - verb: wait
+    selector: "#global-search"
+  - verb: assert_text
+    selector: body
+    assert:
+      contains: Nicos Catalog Explorer
+  - verb: assert_visible
+    selector: "#global-search"
+  - verb: console
+    console:
+      reload: true
+      window: 2s
+      kind: js
+      fail_on_error: true
+  - verb: screenshot
+    label: Public catalog home
+    path: docs/verify/web/evidence/public-catalog-home.png
+    screenshot_mode: full-page

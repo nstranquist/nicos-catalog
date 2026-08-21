@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "build_version": "6b76bf57c80f+dirty",
+  "run_id": "run-20260821T081622.815-77381-001",
+  "plan": "nicos-catalog-public-home",
+  "plan_hash": "sha256:b69cfd78f25a4d6d5d0539c13b221e8823b18e3e9e5a11fc32741a7f4ec5aa13",
+  "source": "yaml",
+  "session": "nicos-catalog-public-proof",
+  "started_at": "2026-08-21T08:16:22.815348Z",
+  "ended_at": "2026-08-21T08:16:25.325967Z",
+  "ok": true,
+  "steps": [
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 0,
+      "verb": "navigate",
+      "ok": true,
+      "duration_ms": 166
+    },
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 1,
+      "verb": "wait",
+      "ok": true,
+      "duration_ms": 121
+    },
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 2,
+      "verb": "assert_text",
+      "ok": true,
+      "duration_ms": 18,
+      "assert": {
+        "ok": true,
+        "mode": "contains",
+        "expected": "contains \"Nicos Catalog Explorer\"",
+        "actual": "Skip to catalog content\nNC\nNicos Catalog\nExplorer\n01\nOverview\ng o\n02\nCatalog\ng c\n03\nGraph\ng g\n04\nHealth\ng h\nSTATIC\n\npublic projection\n\nv0.3.4\n\nSearch the catalog\n/\nAuto\n\nOverview view\n\n···\nOpening view\n\nExplorer is loading this route.\n\nNicos Catalog Exp…"
+      }
+    },
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 3,
+      "verb": "assert_visible",
+      "ok": true,
+      "duration_ms": 28
+    },
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 4,
+      "verb": "console",
+      "ok": true,
+      "duration_ms": 2023
+    },
+    {
+      "schema_version": 2,
+      "build_version": "6b76bf57c80f+dirty",
+      "index": 5,
+      "verb": "screenshot",
+      "label": "Public catalog home",
+      "ok": true,
+      "duration_ms": 125,
+      "screenshot": "docs/verify/web/evidence/public-catalog-home.png",
+      "screenshot_mode": "full-page",
+      "screenshot_width_px": 1440,
+      "screenshot_height_px": 1473
+    }
+  ],
+  "vars": {
+    "base": "https://nicos-catalog-explorer.nstranquist.workers.dev/"
+  }
+}

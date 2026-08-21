@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nvr capture</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 24px; background: #fafafa; color: #111; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .summary { font-size: 12px; color: #555; margin-bottom: 12px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+  .filters .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.04em; min-width: 64px; }
+  .filter { padding: 4px 10px; border-radius: 999px; background: #eee; border: 1px solid transparent; cursor: pointer; font-size: 12px; color: #333; }
+  .filter.active { background: #111; color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 12px; }
+  .shot { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 10px; }
+  .shot img { width: 100%; height: auto; border: 1px solid #ddd; display: block; cursor: zoom-in; background: #f0f0f0; }
+  .shot h3 { margin: 8px 0 4px; font-size: 12px; font-family: ui-monospace, monospace; word-break: break-all; }
+  .shot .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .shot .tag { display: inline-block; font-size: 10px; padding: 1px 6px; background: #eee; border-radius: 4px; color: #555; }
+  .shot .tag.cached { background: #e2f5e2; color: #0a6b1c; }
+  .shot .tag.error { background: #ffe2e2; color: #b00020; }
+  .shot .tag.failed { background: #f1f1f1; color: #444; }
+  dialog { padding: 0; border: 0; background: transparent; }
+  dialog img { max-width: 95vw; max-height: 95vh; display: block; }
+  dialog::backdrop { background: rgba(0,0,0,0.85); }
+  .empty { padding: 32px; text-align: center; color: #888; }
+</style>
+</head>
+<body>
+<h1>nvr capture</h1>
+<div class="summary" id="summary">loading…</div>
+<div class="filters"><span class="label">viewport</span><span id="vfilters"></span></div>
+<div class="filters"><span class="label">theme</span><span id="tfilters"></span></div>
+<div class="filters"><span class="label">status</span><span id="sfilters"></span></div>
+<div class="grid" id="grid"></div>
+<dialog id="lightbox"><img id="lightboxImg" alt=""></dialog>
+<script>
+(async () => {
+  let m;
+  try {
+    m = await fetch('manifest.json').then(r => r.json());
+  } catch (_) {
+    document.body.innerHTML = '<h1>manifest.json not found</h1><p class="empty">Run <code>nvr capture</code> first, then point <code>serve</code> at that directory.</p>';
+    return;
+  }
+  const shots = m.shots || [];
+  const viewports = [...new Set(shots.map(s => s.viewport))].sort();
+  const themes = [...new Set(shots.map(s => s.theme))].sort();
+  const statuses = ['rendered', 'cached', 'failed'];
+  let vFilter = 'all', tFilter = 'all', sFilter = 'all';
+
+  document.getElementById('summary').innerHTML =
+    (m.ok || 0) + ' ok · ' +
+    (m.cached || 0) + ' cached · ' +
+    (m.failed || 0) + ' failed · bundle <code>' + escapeHTML((m.bundleHash || '').slice(0, 12)) + '</code>' +
+    (m.stats && m.stats.shotsPerSec ? ' · ' + Number(m.stats.shotsPerSec).toFixed(1) + ' shots/s' : '');
+
+  function statusOf(s) {
+    if (s.error) return 'failed';
+    if (s.cached) return 'cached';
+    return 'rendered';
+  }
+
+  function renderFilters(id, vals, current, onChange) {
+    const root = document.getElementById(id);
+    root.innerHTML = '';
+    function btn(val, label) {
+      const b = document.createElement('button');
+      b.className = 'filter' + (current === val ? ' active' : '');
+      b.textContent = label;
+      b.onclick = () => onChange(val);
+      root.appendChild(b);
+    }
+    btn('all', 'all');
+    vals.forEach(v => btn(v, v));
+  }
+
+  function render() {
+    renderFilters('vfilters', viewports, vFilter, v => { vFilter = v; render(); });
+    renderFilters('tfilters', themes, tFilter, t => { tFilter = t; render(); });
+    renderFilters('sfilters', statuses, sFilter, s => { sFilter = s; render(); });
+    const filtered = shots.filter(s =>
+      (vFilter === 'all' || s.viewport === vFilter) &&
+      (tFilter === 'all' || s.theme === tFilter) &&
+      (sFilter === 'all' || statusOf(s) === sFilter)
+    );
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty">No shots match the current filters.</div>';
+      return;
+    }
+    filtered.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'shot';
+      const tags = [
+        '<span class="tag">' + escapeHTML(s.viewport) + '</span>',
+        '<span class="tag">' + escapeHTML(s.theme) + '</span>',
+      ];
+      if (s.cached) tags.push('<span class="tag cached">cached</span>');
+      if (s.error) tags.push('<span class="tag failed">' + escapeHTML(s.error) + '</span>');
+      // encodeURI handles path-safety; we additionally HTML-escape it because
+      // it's embedded inside a quoted attribute, where & and " are unsafe.
+      const safeFile = s.file ? escapeHTML(encodeURI(s.file)) : '';
+      const img = safeFile
+        ? '<img src="' + safeFile + '" loading="lazy" data-full="' + safeFile + '" alt="">'
+        : '';
+      div.innerHTML = img + '<h3>' + escapeHTML(s.storyId) + '</h3><div class="tags">' + tags.join('') + '</div>';
+      grid.appendChild(div);
+    });
+    grid.querySelectorAll('img').forEach(img => {
+      img.onclick = () => {
+        document.getElementById('lightboxImg').src = img.dataset.full;
+        document.getElementById('lightbox').showModal();
+      };
+    });
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target.tagName === 'DIALOG' || e.target.tagName === 'IMG') {
+      e.target.closest('dialog').close();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

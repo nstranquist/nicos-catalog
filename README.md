@@ -215,8 +215,10 @@ reviewed pull requests.
 ## Release state
 
 `v0.3.3` is the current module release. Read the
-[release notes](docs/releases/v0.3.3.md). A dated publication review records
-external release and deployment evidence after publication.
+[release notes](docs/releases/v0.3.3.md) and the
+[dated publication review](docs/releases/v0.3.3-publication-review.md). The
+review records external release and deployment evidence without claiming
+launch or adoption.
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

@@ -34,8 +34,8 @@ demo is in [screenshots/](screenshots/).
 Requires Go 1.24 or newer.
 
 ```sh
-go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.1
-nicos-catalog version --expect v0.3.1
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.2
+nicos-catalog version --expect v0.3.2
 ```
 
 For a source checkout:
@@ -207,9 +207,8 @@ See [the Explorer guide](docs/explorer.md),
 
 ## Release state
 
-`v0.3.1` is the current module release. Read the
-[release notes](docs/releases/v0.3.1.md) and the dated
-[publication review](docs/releases/v0.3.1-publication-review.md).
+`v0.3.2` is the current module release. Read the
+[release notes](docs/releases/v0.3.2.md).
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

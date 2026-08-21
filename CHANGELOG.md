@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## v0.3.2 — 2026-08-20
+
+### Fixed
+
+- Two portfolio-manifest links now name the current README headings.
+- A publication regression test now checks every repository-local GitHub
+  fragment in the portfolio manifest against the README heading anchors.
+
 ## v0.3.1 — 2026-08-20
 
 ### Fixed

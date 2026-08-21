@@ -3,6 +3,18 @@ title: Upgrade Nicos Catalog
 description: Required source, index, and UI changes across Nicos Catalog releases.
 ---
 
+## v0.3.1 to v0.3.2
+
+v0.3.2 is a compatible metadata-integrity patch. It repairs two README links
+in the portfolio manifest. It does not change the Go API, index schema,
+Explorer data contract, or runtime behavior. Replace the binary. You do not
+need to reindex.
+
+```sh
+go install github.com/nstranquist/nicos-catalog/cmd/nicos-catalog@v0.3.2
+nicos-catalog version --expect v0.3.2
+```
+
 ## v0.3.0 to v0.3.1
 
 v0.3.1 is a compatible patch. It does not change the Go API, index schema, or

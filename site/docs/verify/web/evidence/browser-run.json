@@ -1,34 +1,34 @@
 {
   "schema_version": 2,
-  "build_version": "6b76bf57c80f+dirty",
-  "run_id": "run-20260821T081622.815-77381-001",
+  "build_version": "dev",
+  "run_id": "run-20260821T112112.688-99680-001",
   "plan": "nicos-catalog-public-home",
-  "plan_hash": "sha256:b69cfd78f25a4d6d5d0539c13b221e8823b18e3e9e5a11fc32741a7f4ec5aa13",
+  "plan_hash": "sha256:58046aed5b9af7775062f944cca1e6b1f75d127a7b25624719aa03685f5db279",
   "source": "yaml",
   "session": "nicos-catalog-public-proof",
-  "started_at": "2026-08-21T08:16:22.815348Z",
-  "ended_at": "2026-08-21T08:16:25.325967Z",
+  "started_at": "2026-08-21T11:21:12.688792Z",
+  "ended_at": "2026-08-21T11:21:15.629484Z",
   "ok": true,
   "steps": [
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 0,
       "verb": "navigate",
       "ok": true,
-      "duration_ms": 166
+      "duration_ms": 293
     },
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 1,
       "verb": "wait",
       "ok": true,
-      "duration_ms": 121
+      "duration_ms": 67
     },
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 2,
       "verb": "assert_text",
       "ok": true,
@@ -36,38 +36,38 @@
       "assert": {
         "ok": true,
         "mode": "contains",
-        "expected": "contains \"Nicos Catalog Explorer\"",
-        "actual": "Skip to catalog content\nNC\nNicos Catalog\nExplorer\n01\nOverview\ng o\n02\nCatalog\ng c\n03\nGraph\ng g\n04\nHealth\ng h\nSTATIC\n\npublic projection\n\nv0.3.4\n\nSearch the catalog\n/\nAuto\n\nOverview view\n\n···\nOpening view\n\nExplorer is loading this route.\n\nNicos Catalog Exp…"
+        "expected": "contains \"Nicos Catalog\"",
+        "actual": "Skip to content\nNicos Catalog\nSearch\n⌘\nK\nGitHub\nSelect theme\nDark\nLight\nAuto\nNicos Catalog\nA typed, local-first software-catalog engine and read-only Explorer. Validate, search, graph, inspect health, and export a closed public site.\nDocs\nInstall\nOpen Ex…"
       }
     },
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 3,
       "verb": "assert_visible",
       "ok": true,
-      "duration_ms": 28
+      "duration_ms": 24
     },
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 4,
       "verb": "console",
       "ok": true,
-      "duration_ms": 2023
+      "duration_ms": 2015
     },
     {
       "schema_version": 2,
-      "build_version": "6b76bf57c80f+dirty",
+      "build_version": "dev",
       "index": 5,
       "verb": "screenshot",
       "label": "Public catalog home",
       "ok": true,
-      "duration_ms": 125,
+      "duration_ms": 519,
       "screenshot": "docs/verify/web/evidence/public-catalog-home.png",
       "screenshot_mode": "full-page",
       "screenshot_width_px": 1440,
-      "screenshot_height_px": 1473
+      "screenshot_height_px": 1821
     }
   ],
   "vars": {

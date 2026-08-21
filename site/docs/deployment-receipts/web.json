@@ -5,20 +5,20 @@
   "provider_profile": "cloudflare.nicos-catalog.production",
   "source": {
     "repository": "git@github.com:nstranquist/nicos-catalog.git",
-    "commit": "9de295bf3107899318478a0ee0d995a39796d390",
+    "commit": "b4679db325399d04255ef03ff90758d140711b38",
     "paths": [
       "site"
     ],
     "dirty": false,
-    "artifact_sha256": "87f24c1354dd79f5d1498d80e804c55df73c2b191b6c0f98e383e39189209ae2",
+    "artifact_sha256": "f3aba239e476990ade38edefb8c6553d40c0626180a7d78109b97e370c388622",
     "config_sha256": "43b4d114405d9abaf6243215bf7ad38a371650ea2ecf0833bba88be9e2965f38"
   },
   "deployment": {
     "resource": "nicos-catalog-explorer",
-    "started_at": "2026-08-21T07:09:54.244679Z",
-    "completed_at": "2026-08-21T07:10:02.027701Z",
-    "version_id": "c0ca675f-70b3-42f4-9560-2e1c1a067696",
-    "previous_version_id": "eb8435c3-0eb7-46a0-8a0f-fd15a21592e4",
+    "started_at": "2026-08-21T11:20:04.138383Z",
+    "completed_at": "2026-08-21T11:20:10.346272Z",
+    "version_id": "a4d4d0e0-7cd6-4d51-a2a5-9d8924110c11",
+    "previous_version_id": "84d4b5e7-3d7b-4a60-85a4-f6dfee2fd08f",
     "command": [
       "ndev",
       "integrations",
@@ -37,32 +37,28 @@
     "reachability": "public",
     "url": "https://nicos-catalog-explorer.nstranquist.workers.dev/",
     "final_url": "https://nicos-catalog-explorer.nstranquist.workers.dev/",
-    "observed_at": "2026-08-21T07:10:02.140839Z",
+    "observed_at": "2026-08-21T11:20:10.475629Z",
     "status_code": 200,
     "content_type": "text/html",
-    "body_sha256": "b577215d50d502945c141621be8a17940a8ea595491eb7f345d7d14d1228a8ad",
-    "response_size": 27548
+    "body_sha256": "94c8143113c9a8beb772f3153f2ed2c3eb7d8655c42a00315f82b999910058a0",
+    "response_size": 27562
   },
   "rollback": {
-    "mode": "fallback-url",
-    "target_url": "https://nicos-catalog-explorer.pages.dev/",
-    "verification": {
-      "reachability": "retained-fallback",
-      "url": "https://nicos-catalog-explorer.pages.dev/",
-      "final_url": "https://nicos-catalog-explorer.pages.dev/",
-      "observed_at": "2026-08-21T07:09:54.318873Z",
-      "status_code": 200,
-      "content_type": "text/html; charset=utf-8",
-      "body_sha256": "cdac020e90859cf8192db9a8f9fe47db153ac8d7e94226ed79831f2b16a5788f",
-      "response_size": 771
-    },
+    "mode": "provider-version",
+    "target_version_id": "84d4b5e7-3d7b-4a60-85a4-f6dfee2fd08f",
     "command": [
       "ndev",
-      "endpoints",
-      "set",
-      "nicos-catalog-explorer/web",
-      "--prod",
-      "https://nicos-catalog-explorer.pages.dev/"
+      "integrations",
+      "cloudflare",
+      "run",
+      "--profile",
+      "cloudflare.nicos-catalog.production",
+      "--operation",
+      "mutating",
+      "--",
+      "wrangler",
+      "rollback",
+      "84d4b5e7-3d7b-4a60-85a4-f6dfee2fd08f"
     ]
   }
 }

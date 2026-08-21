@@ -6,13 +6,13 @@ steps:
   - verb: navigate
     url: ${base}
   - verb: wait
-    selector: "#global-search"
+    selector: h1
   - verb: assert_text
     selector: body
     assert:
-      contains: Nicos Catalog Explorer
+      contains: Nicos Catalog
   - verb: assert_visible
-    selector: "#global-search"
+    selector: 'a[href="/explorer/"]'
   - verb: console
     console:
       reload: true

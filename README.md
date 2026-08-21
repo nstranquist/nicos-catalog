@@ -208,7 +208,8 @@ See [the Explorer guide](docs/explorer.md),
 ## Release state
 
 `v0.3.2` is the current module release. Read the
-[release notes](docs/releases/v0.3.2.md).
+[release notes](docs/releases/v0.3.2.md) and the dated
+[publication review](docs/releases/v0.3.2-publication-review.md).
 
 A public module release proves distribution. It does not prove a hosted
 deployment, an independent adoption, or revenue. Maintainers must use the

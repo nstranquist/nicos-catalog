@@ -14,7 +14,7 @@ access:
         label: Install Nicos Catalog
         url: https://github.com/nstranquist/nicos-catalog#install
     repository_url: https://github.com/nstranquist/nicos-catalog
-    documentation_url: https://github.com/nstranquist/nicos-catalog#five-minute-smoke
+    documentation_url: https://github.com/nstranquist/nicos-catalog#five-minute-explorer
     feedback_url: https://github.com/nstranquist/nicos-catalog/issues/new
     module: github.com/nstranquist/nicos-catalog
     binary: nicos-catalog
@@ -28,7 +28,7 @@ proof:
         - id: synthetic-smoke
           statement: The public repository includes a five-minute synthetic-corpus smoke for index, search, graph, and drift behavior.
           evidence_kind: test
-          evidence_url: https://github.com/nstranquist/nicos-catalog#five-minute-smoke
+          evidence_url: https://github.com/nstranquist/nicos-catalog#start-an-authored-catalog
     boundaries:
         - The public engine excludes private operator telemetry, valuation data, and personal catalog records.
         - A public source tag is separate from a formal GitHub Release and from external adoption.

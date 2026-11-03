@@ -1,0 +1,7 @@
+# Pin matches GITLEAKS_VERSION in .github/workflows/gitleaks.yml.
+# The official hook scans staged files: gitleaks git --pre-commit --redact --staged
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
